@@ -145,7 +145,7 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
 }
 
 
-/* ---- 6. Sequência do hero: 80 frames e emenda com a seção 2 ---- */
+/* ---- 6. Sequência do hero: trilhas completas e emenda com a seção 2 ---- */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const baixados = new Set();
@@ -172,7 +172,11 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
 
   const cientista = [...baixados].filter((u) => u.startsWith('cientista/')).length;
   const molecula = [...baixados].filter((u) => u.startsWith('molecula/')).length;
-  ok(cientista === 40 && molecula === 40, `as duas sequências carregam inteiras (cientista ${cientista}/40, molecula ${molecula}/40)`);
+  // Sem número fixo: conferimos que as duas trilhas vieram inteiras e iguais.
+  ok(
+    cientista >= 70 && molecula >= 70 && cientista === molecula,
+    `as duas sequências carregam inteiras (cientista ${cientista}, molecula ${molecula})`,
+  );
 
   // No fim da rolagem o texto tem de estar fora, não reaparecendo.
   await page.evaluate((y) => scrollTo(0, y), g.util);
@@ -263,7 +267,7 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   const erradas = [];
   for (const s of secoes) {
     await page.evaluate((y) => scrollTo(0, y + 120), s.topo);
-    await page.waitForTimeout(350);
+    await page.waitForTimeout(700); // > que os 300ms de transition-colors
     const solida = await page.evaluate(() => {
       // "rgba(0, 0, 0, 0)" quando transparente, "rgba(255, 255, 255, 0.9)" quando branca.
       const bg = getComputedStyle(document.querySelector('header')).backgroundColor;

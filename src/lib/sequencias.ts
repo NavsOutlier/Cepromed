@@ -6,8 +6,8 @@ import type { Trilha } from '../components/ScrollSequence';
  * hero parou, então a passagem de uma para a outra não tem corte.
  */
 export const TRILHAS_HERO: readonly Trilha[] = [
-  { nome: 'cientista', frames: 40 },
-  { nome: 'molecula', frames: 40 },
+  { nome: 'cientista', frames: 96 },
+  { nome: 'molecula', frames: 96 },
 ] as const;
 
 export const TOTAL_FRAMES_HERO = TRILHAS_HERO.reduce((n, t) => n + t.frames, 0);

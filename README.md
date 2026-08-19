@@ -19,6 +19,7 @@ npm run dev        # http://localhost:3000
 | `npm run lint`       | só o typecheck (`tsc --noEmit`, modo estrito)                  |
 | `npm run check:ui`   | verificações de interação e acessibilidade no navegador        |
 | `npm run gen:images` | reprocessa `raw-assets/` → `public/img/`                       |
+| `npm run gen:frames`  | extrai os frames das sequências a partir dos vídeos originais   |
 | `npm run gen:icons`  | regenera favicon, apple-touch-icon e a imagem de compartilhamento |
 
 `check:ui` precisa do preview no ar:
@@ -59,37 +60,27 @@ Os originais ficam em `raw-assets/` e nunca são servidos. `npm run gen:images`
 gera de `raw-assets/`:
 
 - **fotos** → WebP 1600px + fallback JPEG em `public/img/`;
-- **sequências** (`raw-assets/sequencias/<Nome>/`) → WebP numerado em duas
-  larguras, `public/img/sequencias/<nome>/lg` (1600px) e `/sm` (900px).
+- **sequências** → WebP numerado em duas larguras,
+  `public/img/sequencias/<nome>/lg` (1400px) e `/sm` (800px).
 
-O `ScrollSequence` escolhe `sm` em telas ≤ 900px, em conexões 2G/3G ou quando o
-visitante está com economia de dados. Nessas condições ele também baixa só uma
-fatia dos frames (de 2 em 2, ou de 4 em 4) e desenha o vizinho mais próximo no
-lugar dos que faltam — o movimento fica mais seco, nunca parado.
+### De onde vêm os frames
 
-### Movimento reduzido
+Os vídeos originais ficam em `raw-assets/videos/` (`v<nome>.mp4`) e nunca são
+servidos. `npm run gen:frames` amostra cada um a 12 fps com ffmpeg e grava em
+`raw-assets/sequencias-densas/<Nome>/`; o `gen:images` prefere essa pasta.
 
-Quem desliga animações no sistema (`prefers-reduced-motion`) **continua vendo a
-sequência**: ela não se move sozinha, avança na medida do scroll. O que essa
-preferência desliga é a fluidez (menos frames) e, via `<MotionConfig
-reducedMotion="user">` em [`src/App.tsx`](src/App.tsx), tudo que anima por conta
-própria — marquee dos selos, laço da seta, animações de entrada.
+Os clipes têm 8 s a 24 fps, então a 12 fps saem **96 frames reais por
+sequência** — contra os 40 que vieram do ezgif e estão em
+`raw-assets/sequencias/` (mantidos só por histórico). Para mais suavidade,
+`npm run gen:frames 16` ou `24`; o custo é o peso da página.
 
-Congelar a sequência inteira nesse caso deixava o hero parado no primeiro frame
-para esses visitantes; no Windows basta ter "Efeitos de animação" desligado em
-Acessibilidade › Efeitos visuais para cair nisso.
+> Os vídeos estavam em `public/`, o que os colocava no build sem serem usados —
+> 14,7 MB servidos à toa. Mantenha-os em `raw-assets/`.
 
-O hero toca as duas trilhas como uma linha do tempo só — `cientista` (40) e
-depois `molecula` (40), definidas em [`src/lib/sequencias.ts`](src/lib/sequencias.ts).
-A seção seguinte usa `FRAME_FINAL`, o último frame dessa linha, como fundo
-parado: quem rola do hero para ela vê a mesma imagem, sem corte. Os dois trechos
-também compartilham o mesmo gradiente de base, para o tom não saltar na emenda.
-Se você trocar a ordem ou a quantidade de trilhas, `FRAME_FINAL` acompanha
-sozinho — e `npm run check:ui` verifica que a emenda continua exata.
-
-Para trocar uma sequência, substitua os frames em `raw-assets/sequencias/` e
-rode `npm run gen:images` — os nomes de arquivo originais não importam, a ordem
-alfabética define a ordem dos frames.
+Para trocar uma sequência, substitua o vídeo em `raw-assets/videos/` e rode
+`npm run gen:frames && npm run gen:images`. O nome do arquivo define o nome da
+trilha (`vcientista.mp4` → `cientista`); ajuste `TRILHAS_HERO` em
+[`src/lib/sequencias.ts`](src/lib/sequencias.ts) com a nova contagem.
 
 ## Formulário de orçamento
 

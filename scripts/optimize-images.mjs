@@ -4,10 +4,10 @@
  *   node scripts/optimize-images.mjs
  *
  * - Fotos de serviço / institucionais -> WebP 1600px + fallback JPEG.
- * - Sequência de frames do hero -> WebP em duas larguras (1600 desktop / 900 mobile),
+ * - Sequência de frames do hero -> WebP em duas larguras (1200 desktop / 700 mobile),
  *   renomeados para o padrão numérico que <ScrollSequence> espera.
  *
- * As fontes ficam em public/_raw/ (fora do build) e o resultado em public/img/.
+ * As fontes ficam em raw-assets/ (fora do build) e o resultado em public/img/.
  */
 import sharp from 'sharp';
 import { mkdir, readdir, rm, stat } from 'node:fs/promises';
@@ -39,7 +39,10 @@ async function sequence(srcDir, outDir) {
   const frames = (await readdir(srcDir)).filter((f) => /\.(jpe?g|png)$/i.test(f)).sort();
   if (!frames.length) return console.log(`  (nenhum frame em ${srcDir})`);
 
-  for (const [w, suffix] of [[1600, 'lg'], [900, 'sm']]) {
+  // Com as sequências adensadas há quase o dobro de frames; cada um pode ser
+  // um pouco menor e mais comprimido sem perda visível, porque nenhum fica
+  // muito tempo na tela.
+  for (const [w, suffix] of [[1200, 'lg'], [700, 'sm']]) {
     const dir = path.join(outDir, suffix);
     await mkdir(dir, { recursive: true });
     let bytes = 0;
@@ -47,7 +50,7 @@ async function sequence(srcDir, outDir) {
       const out = path.join(dir, `${String(i + 1).padStart(3, '0')}.webp`);
       await sharp(path.join(srcDir, file))
         .resize({ width: w, withoutEnlargement: true })
-        .webp({ quality: suffix === 'lg' ? 72 : 66, effort: 5 })
+        .webp({ quality: suffix === 'lg' ? 62 : 55, effort: 5 })
         .toFile(out);
       bytes += (await stat(out)).size;
     }
@@ -55,9 +58,9 @@ async function sequence(srcDir, outDir) {
   }
 }
 
-const RAW = p('public', '_raw');
+const RAW = p('raw-assets');
 if (!existsSync(RAW)) {
-  console.error('public/_raw/ não existe. Coloque os originais lá antes de rodar.');
+  console.error('raw-assets/ não existe. Coloque os originais lá antes de rodar.');
   process.exit(1);
 }
 
@@ -71,11 +74,17 @@ if (existsSync(path.join(RAW, 'equipe.png'))) {
 }
 
 console.log('\nSequências do hero');
-for (const dir of await readdir(path.join(RAW, 'sequencias'), { withFileTypes: true })) {
+// Se existirem frames adensados (scripts/interpolar-frames.mjs), são eles que
+// vão para o site; senão, caímos nos originais.
+const densas = path.join(RAW, 'sequencias-densas');
+const fonteSeq = existsSync(densas) ? densas : path.join(RAW, 'sequencias');
+console.log('  fonte:', path.relative(ROOT, fonteSeq));
+
+for (const dir of await readdir(fonteSeq, { withFileTypes: true })) {
   if (!dir.isDirectory()) continue;
   const out = p('public', 'img', 'sequencias', dir.name.toLowerCase());
   await rm(out, { recursive: true, force: true });
-  await sequence(path.join(RAW, 'sequencias', dir.name), out);
+  await sequence(path.join(fonteSeq, dir.name), out);
 }
 
 console.log(`\nEconomia total nas fotos: ${kb(saved)}\n`);

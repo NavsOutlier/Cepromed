@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
+import { motion, useScroll, useSpring, useTransform } from 'motion/react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { ScrollSequence } from './ScrollSequence';
 import { TRILHAS_HERO } from '../lib/sequencias';
@@ -16,6 +16,19 @@ export function Hero() {
     offset: ['start start', 'end end'],
   });
 
+  /**
+   * A roda do mouse rola em saltos, não continuamente: alimentar a sequência
+   * com o progresso cru faz a cena pular de um frame para outro. A mola
+   * suaviza esses degraus e continua o movimento por alguns quadros depois
+   * que o scroll para.
+   */
+  const progressoSuave = useSpring(scrollYProgress, {
+    stiffness: 140,
+    damping: 32,
+    mass: 0.35,
+    restDelta: 0.0005,
+  });
+
   const conteudoOpacidade = useTransform(scrollYProgress, [0, 0.18, 1], [1, 0, 0]);
   const conteudoY = useTransform(scrollYProgress, [0, 0.18, 1], ['0%', '-18%', '-18%']);
   // Com o texto fora da tela o véu de contraste não é mais necessário:
@@ -30,7 +43,7 @@ export function Hero() {
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <ScrollSequence
           trilhas={TRILHAS_HERO}
-          progress={scrollYProgress}
+          progress={progressoSuave}
           alt="Analista do Cepromed ajustando um microscópio óptico em bancada de laboratório; em seguida, um modelo molecular tridimensional gira lentamente."
           ancoraY="top"
           className="absolute inset-0 h-full w-full object-cover"

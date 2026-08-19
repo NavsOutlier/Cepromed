@@ -130,29 +130,53 @@ export function ScrollSequence({
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d', { alpha: false });
 
-    /** Desenha o frame `i` cobrindo o canvas, preservando a proporção. */
-    const pintar = (i: number) => {
+    /** Desenha um frame cobrindo o canvas, preservando a proporção. */
+    const desenhar = (img: HTMLImageElement, alfa = 1) => {
       if (!canvas || !ctx) return;
-      const img = imagens[i];
-      if (!img) return;
-
       const { width: cw, height: ch } = canvas;
       const escala = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
       const dw = img.naturalWidth * escala;
       const dh = img.naturalHeight * escala;
+      ctx.globalAlpha = alfa;
       ctx.drawImage(img, (cw - dw) / 2, (ch - dh) * FATOR_ANCORA[ancoraY], dw, dh);
-      desenhado = i;
+      ctx.globalAlpha = 1;
     };
 
-    /** Do frame pedido, cai para o vizinho carregado mais próximo. */
-    const pintarVizinho = (alvo: number) => {
-      if (imagens[alvo]) return pintar(alvo);
+    /** Índice carregado mais próximo de `i`, ou -1 se ainda não há nenhum. */
+    const maisProximo = (i: number) => {
+      const j = Math.round(i);
+      if (imagens[j]) return j;
       for (let d = 1; d < total; d++) {
-        if (imagens[alvo - d]) return pintar(alvo - d);
-        if (imagens[alvo + d]) return pintar(alvo + d);
+        if (imagens[j - d]) return j - d;
+        if (imagens[j + d]) return j + d;
       }
+      return -1;
     };
-    pintarRef.current = pintarVizinho;
+
+    /**
+     * Pinta uma posição fracionária da linha do tempo.
+     *
+     * São 80 frames para toda a rolagem: saltar de um para o outro deixa o
+     * movimento em degraus. Sobrepondo o frame seguinte com a opacidade da
+     * fração, a passagem vira contínua — a mesma ideia do motion blur de
+     * um vídeo, sem precisar de mais imagens.
+     */
+    const pintarEm = (posicao: number) => {
+      if (!canvas || !ctx) return;
+      const base = Math.floor(posicao);
+      const fracao = posicao - base;
+
+      const a = maisProximo(base);
+      if (a < 0) return;
+      desenhar(imagens[a]!);
+      desenhado = a;
+
+      if (fracao <= 0.01) return;
+      const b = maisProximo(base + 1);
+      // Só mescla com um vizinho de fato adjacente; senão o blend borra a cena.
+      if (b >= 0 && b !== a && Math.abs(b - a) <= 2) desenhar(imagens[b]!, fracao);
+    };
+    pintarRef.current = pintarEm;
 
     const redimensionar = () => {
       if (!canvas) return;
@@ -160,7 +184,7 @@ export function ScrollSequence({
       const rect = canvas.getBoundingClientRect();
       canvas.width = Math.round(rect.width * dpr);
       canvas.height = Math.round(rect.height * dpr);
-      pintarVizinho(desenhado < 0 ? alvoRef.current : desenhado);
+      pintarEm(alvoRef.current);
     };
 
     const carregar = (i: number) =>
@@ -179,7 +203,7 @@ export function ScrollSequence({
           // Todo frame novo pode ser melhor que o que está na tela: se ele
           // fica mais perto do alvo atual, repinta.
           if (Math.abs(i - alvoRef.current) < Math.abs(desenhado - alvoRef.current)) {
-            pintarVizinho(alvoRef.current);
+            pintarEm(alvoRef.current);
           }
           resolve();
         };
@@ -217,8 +241,8 @@ export function ScrollSequence({
 
   // O scroll só agenda o próximo desenho; pintar acontece no frame do browser.
   useMotionValueEvent(progress, 'change', (valor) => {
-    const alvo = Math.min(total - 1, Math.max(0, Math.round(valor * (total - 1))));
-    if (alvo === alvoRef.current) return;
+    const alvo = Math.min(total - 1, Math.max(0, valor * (total - 1)));
+    if (Math.abs(alvo - alvoRef.current) < 0.01) return;
     alvoRef.current = alvo;
 
     cancelAnimationFrame(rafRef.current);
