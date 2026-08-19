@@ -12,9 +12,17 @@ type Props = {
   /** Descrição da cena para leitores de tela. */
   alt: string;
   className?: string;
+  /**
+   * Onde ancorar o recorte vertical, como o `object-position` do CSS.
+   * 'top' preserva o topo da cena e corta por baixo. Padrão: 'center'.
+   */
+  ancoraY?: 'top' | 'center' | 'bottom';
   /** Avisa o pai quando o primeiro frame já está pintado. */
   onFirstFrame?: () => void;
 };
+
+/** Fator de deslocamento vertical do recorte: 0 = topo, 0.5 = centro, 1 = base. */
+const FATOR_ANCORA = { top: 0, center: 0.5, bottom: 1 } as const;
 
 type Conexao = { saveData?: boolean; effectiveType?: string };
 
@@ -93,7 +101,14 @@ export function ordemDeCarga(total: number): number[] {
  * Enquanto o frame exato não chegou, desenhamos o vizinho carregado mais
  * próximo — a animação fica mais grosseira, nunca parada.
  */
-export function ScrollSequence({ trilhas, progress, alt, className, onFirstFrame }: Props) {
+export function ScrollSequence({
+  trilhas,
+  progress,
+  alt,
+  className,
+  ancoraY = 'center',
+  onFirstFrame,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pintarRef = useRef<(alvo: number) => void>(() => {});
   const rafRef = useRef(0);
@@ -125,7 +140,7 @@ export function ScrollSequence({ trilhas, progress, alt, className, onFirstFrame
       const escala = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
       const dw = img.naturalWidth * escala;
       const dh = img.naturalHeight * escala;
-      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) * FATOR_ANCORA[ancoraY], dw, dh);
       desenhado = i;
     };
 
@@ -198,7 +213,7 @@ export function ScrollSequence({ trilhas, progress, alt, className, onFirstFrame
     };
     // `trilhas` entra pela chave estável, não pela identidade do array.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chave, total, reduzirMovimento, onFirstFrame]);
+  }, [chave, total, reduzirMovimento, ancoraY, onFirstFrame]);
 
   // O scroll só agenda o próximo desenho; pintar acontece no frame do browser.
   useMotionValueEvent(progress, 'change', (valor) => {

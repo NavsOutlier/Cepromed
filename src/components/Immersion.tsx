@@ -75,7 +75,8 @@ export function Immersion() {
             width={1600}
             height={900}
             decoding="async"
-            className="absolute inset-0 h-full w-full object-cover"
+            // object-top espelha o ancoraY="top" do hero: sem isso a emenda salta.
+            className="absolute inset-0 h-full w-full object-cover object-top"
           />
         </picture>
         <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/70 to-brand-950/40" />

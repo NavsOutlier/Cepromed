@@ -193,7 +193,8 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
       else {
         const e = Math.max(full.width / img.naturalWidth, full.height / img.naturalHeight);
         const dw = img.naturalWidth * e, dh = img.naturalHeight * e;
-        fc.drawImage(img, (full.width - dw) / 2, (full.height - dh) / 2, dw, dh);
+        // Recorte ancorado no topo, igual ao hero (ancoraY="top" / object-top).
+        fc.drawImage(img, (full.width - dw) / 2, 0, dw, dh);
       }
       const t = document.createElement('canvas'); t.width = 32; t.height = 18;
       t.getContext('2d').drawImage(full, 0, 0, 32, 18);

@@ -32,6 +32,7 @@ export function Hero() {
           trilhas={TRILHAS_HERO}
           progress={scrollYProgress}
           alt="Analista do Cepromed ajustando um microscópio óptico em bancada de laboratório; em seguida, um modelo molecular tridimensional gira lentamente."
+          ancoraY="top"
           className="absolute inset-0 h-full w-full object-cover"
           onFirstFrame={marcarPronto}
         />
