@@ -1,1 +1,75 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Vinho institucional do Cepromed (#923032) expandido em escala utilizável. */
+  --color-brand-50: #fdf4f4;
+  --color-brand-100: #fbe8e8;
+  --color-brand-200: #f6d4d5;
+  --color-brand-300: #eeb0b2;
+  --color-brand-400: #e28387;
+  --color-brand-500: #d05257;
+  --color-brand-600: #b73a3d;
+  --color-brand-700: #923032;
+  --color-brand-800: #7a2a2c;
+  --color-brand-900: #672729;
+  --color-brand-950: #391112;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Compensa o header fixo ao pular para uma âncora. */
+    scroll-padding-top: 5.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-white text-zinc-900 font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3 {
+    @apply font-display;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Um anel de foco visível e consistente, só para navegação por teclado. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-700 rounded-sm;
+  }
+
+  /* O usuário pediu para o sistema não animar: obedecemos em tudo,
+     inclusive nas animações declaradas pelo Motion. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility container-page {
+  @apply mx-auto w-full max-w-7xl px-6 sm:px-8;
+}
+
+@theme {
+  --animate-marquee: marquee 45s linear infinite;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}

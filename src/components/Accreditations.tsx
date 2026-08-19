@@ -1,44 +1,57 @@
-import { motion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
+import { acreditacoes } from '../lib/site';
 
-const accreditations = [
-  { name: "ANVISA", logo: "https://cepromed.com.br/fotosempresa/203/images/anvisa-color.jpg" },
-  { name: "ABNT", logo: "https://cepromed.com.br/fotosempresa/203/images/abnt-color.jpg" },
-  { name: "INMETRO", logo: "https://cepromed.com.br/fotosempresa/203/images/inmetroensaios-color.jpg" },
-  { name: "Ministério da Economia", logo: "https://cepromed.com.br/fotosempresa/203/images/ministerio-da-economia-color.jpg" },
-  { name: "Sibratec", logo: "https://cepromed.com.br/fotosempresa/203/images/sibratec-color.jpg" },
-  { name: "ABRAC", logo: "https://cepromed.com.br/fotosempresa/203/images/abrac-color.jpg" },
-  { name: "REBLAS", logo: "https://cepromed.com.br/fotosempresa/203/images/reblas-color.jpg" }
-];
+function Selo({ nome, logo, oculto }: { nome: string; logo: string; oculto?: boolean }) {
+  return (
+    <img
+      src={logo}
+      alt={oculto ? '' : nome}
+      aria-hidden={oculto || undefined}
+      width={160}
+      height={80}
+      loading="lazy"
+      decoding="async"
+      className="h-14 w-auto shrink-0 object-contain opacity-70 grayscale transition duration-500 hover:opacity-100 hover:grayscale-0 sm:h-16"
+    />
+  );
+}
 
 export function Accreditations() {
+  const reduzirMovimento = useReducedMotion();
+
   return (
-    <section className="py-24 bg-white border-t border-zinc-100 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-8 mb-12 text-center">
-        <p className="text-[#923032] font-semibold tracking-[0.2em] uppercase text-sm mb-2">Acreditações e Parcerias</p>
-        <h2 className="text-2xl font-bold text-zinc-900">Reconhecimento Nacional</h2>
+    <section id="acreditacoes" className="scroll-mt-24 border-t border-zinc-100 bg-white py-20">
+      <div className="container-page mb-12 text-center">
+        <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">
+          Acreditações e parcerias
+        </p>
+        <h2 className="text-2xl font-bold text-zinc-900 sm:text-3xl">
+          Reconhecimento por quem regula o setor
+        </h2>
       </div>
 
-      <div className="relative w-full flex overflow-hidden group">
-        {/* We double the content to create a seamless infinite marquee effect */}
-        <motion.div 
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{ duration: 30, ease: "linear", repeat: Infinity }}
-          className="flex whitespace-nowrap items-center gap-16 md:gap-24 px-8"
-        >
-          {[...accreditations, ...accreditations].map((item, idx) => (
-            <div 
-              key={idx} 
-              className="flex-shrink-0 grayscale hover:grayscale-0 transition-all duration-500 opacity-70 hover:opacity-100"
-            >
-              <img 
-                src={item.logo} 
-                alt={item.name} 
-                className="h-16 md:h-20 w-auto object-contain"
-              />
-            </div>
+      {reduzirMovimento ? (
+        <ul className="container-page flex flex-wrap items-center justify-center gap-x-14 gap-y-8">
+          {acreditacoes.map((item) => (
+            <li key={item.nome}>
+              <Selo nome={item.nome} logo={item.logo} />
+            </li>
           ))}
-        </motion.div>
-      </div>
+        </ul>
+      ) : (
+        // A faixa é duplicada para que o loop de -50% emende sem salto.
+        // O hover/foco pausa a rolagem para dar tempo de ler cada selo.
+        <div className="group relative flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+          <div className="flex w-max animate-marquee items-center gap-16 px-8 group-hover:[animation-play-state:paused] group-focus-within:[animation-play-state:paused] sm:gap-24">
+            {acreditacoes.map((item) => (
+              <Selo key={item.nome} nome={item.nome} logo={item.logo} />
+            ))}
+            {acreditacoes.map((item) => (
+              <Selo key={`${item.nome}-copia`} nome={item.nome} logo={item.logo} oculto />
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

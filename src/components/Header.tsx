@@ -1,44 +1,184 @@
-import { motion } from 'motion/react';
-import { Menu, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { Menu, X } from 'lucide-react';
+import { navegacao, site } from '../lib/site';
+
+/** Marca a seção visível para destacar o item correspondente no menu. */
+function useSecaoAtiva() {
+  const [ativa, setAtiva] = useState('inicio');
+
+  useEffect(() => {
+    const ids = navegacao.map((n) => n.href.slice(1));
+    const alvos = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    const observer = new IntersectionObserver(
+      (entradas) => {
+        const visivel = entradas
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visivel) setAtiva(visivel.target.id);
+      },
+      // A faixa central da tela decide quem está "ativo".
+      { rootMargin: '-45% 0px -45% 0px', threshold: 0 },
+    );
+
+    alvos.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  return ativa;
+}
 
 export function Header() {
+  const [rolou, setRolou] = useState(false);
+  const [menuAberto, setMenuAberto] = useState(false);
+  const ativa = useSecaoAtiva();
+
+  useEffect(() => {
+    const onScroll = () => setRolou(window.scrollY > 80);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Menu aberto trava o scroll do fundo e fecha no Esc.
+  useEffect(() => {
+    if (!menuAberto) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuAberto(false);
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menuAberto]);
+
+  const solido = rolou || menuAberto;
+
   return (
-    <motion.header 
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 bg-white/90 backdrop-blur-md border-b border-zinc-200 text-zinc-900"
-    >
-      <div className="flex items-center gap-2">
-        <motion.img 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1 }}
-          src="https://cepromed.com.br/fotosempresa/203/images/logotipo-cepromed-topo1.png" 
-          alt="Cepromed" 
-          className="h-12 object-contain"
-        />
-      </div>
+    <>
+      <a
+        href="#conteudo"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-brand-700 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+      >
+        Pular para o conteúdo
+      </a>
 
-      <nav className="hidden lg:flex items-center gap-10 text-[11px] uppercase tracking-[0.15em] font-semibold text-zinc-600">
-        <a href="#home" className="hover:text-[#923032] transition-colors">Home</a>
-        <a href="#o-cepromed" className="hover:text-[#923032] transition-colors">O Cepromed</a>
-        <a href="#escopos" className="hover:text-[#923032] transition-colors">Escopos</a>
-        <a href="#trabalhe-conosco" className="hover:text-[#923032] transition-colors">Trabalhe Conosco</a>
-        <a href="#ouvidoria" className="hover:text-[#923032] transition-colors">Ouvidoria</a>
-      </nav>
+      <motion.header
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+          solido
+            ? 'border-b border-zinc-200 bg-white/90 backdrop-blur-md'
+            : 'border-b border-transparent bg-transparent'
+        }`}
+      >
+        <div className="container-page flex items-center justify-between py-4">
+          <a href="#inicio" className="flex items-center" aria-label={`${site.nome} — início`}>
+            <img
+              src="/img/logo-cepromed.png"
+              alt={site.nome}
+              width={180}
+              height={48}
+              className={`h-10 w-auto object-contain transition-[filter] duration-300 sm:h-12 ${
+                solido ? '' : 'brightness-0 invert drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]'
+              }`}
+            />
+          </a>
 
-      <div className="flex items-center gap-6">
-        <button className="text-zinc-600 hover:text-[#923032] transition-colors">
-          <Search className="w-5 h-5" />
-        </button>
-        <button className="lg:hidden text-zinc-600 hover:text-[#923032] transition-colors">
-          <Menu className="w-6 h-6" />
-        </button>
-        <button className="hidden lg:block px-7 py-2.5 bg-[#923032] text-white rounded-sm text-xs uppercase tracking-widest hover:bg-[#7a2829] transition-colors duration-300 shadow-lg shadow-[#923032]/20">
-          Contato
-        </button>
-      </div>
-    </motion.header>
+          <nav aria-label="Principal" className="hidden items-center gap-8 lg:flex">
+            {navegacao.map((item) => {
+              const atual = ativa === item.href.slice(1);
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  aria-current={atual ? 'true' : undefined}
+                  className={`relative text-[11px] font-semibold uppercase tracking-[0.15em] transition-colors ${
+                    solido
+                      ? atual
+                        ? 'text-brand-700'
+                        : 'text-zinc-600 hover:text-brand-700'
+                      : atual
+                        ? 'text-white'
+                        : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  {item.label}
+                  {atual && (
+                    <motion.span
+                      layoutId="nav-ativo"
+                      className={`absolute -bottom-1.5 left-0 h-px w-full ${solido ? 'bg-brand-700' : 'bg-white'}`}
+                    />
+                  )}
+                </a>
+              );
+            })}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <a
+              href="#contato"
+              className="hidden rounded-md bg-brand-700 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-brand-600 lg:block"
+            >
+              Orçamento
+            </a>
+            <button
+              type="button"
+              onClick={() => setMenuAberto((v) => !v)}
+              aria-expanded={menuAberto}
+              aria-controls="menu-mobile"
+              aria-label={menuAberto ? 'Fechar menu' : 'Abrir menu'}
+              className={`rounded-md p-2 transition-colors lg:hidden ${
+                solido ? 'text-zinc-700 hover:text-brand-700' : 'text-white hover:text-brand-200'
+              }`}
+            >
+              {menuAberto ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+      </motion.header>
+
+      <AnimatePresence>
+        {menuAberto && (
+          <motion.div
+            id="menu-mobile"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-40 bg-white pt-24 lg:hidden"
+          >
+            <nav aria-label="Principal (mobile)" className="container-page flex flex-col">
+              {navegacao.map((item, i) => (
+                <motion.a
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuAberto(false)}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 + i * 0.05, duration: 0.4 }}
+                  className="border-b border-zinc-100 py-5 text-2xl font-display font-semibold tracking-tight text-zinc-900"
+                >
+                  {item.label}
+                </motion.a>
+              ))}
+              <motion.a
+                href={`tel:${site.telefoneLink}`}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.4 }}
+                className="mt-8 rounded-md bg-brand-700 py-4 text-center text-sm font-semibold uppercase tracking-widest text-white"
+              >
+                Ligar: {site.telefone}
+              </motion.a>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

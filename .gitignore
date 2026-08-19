@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Capturas geradas por npm run check:ui
+.screenshots/
