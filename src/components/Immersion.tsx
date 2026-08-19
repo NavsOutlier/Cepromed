@@ -9,7 +9,7 @@ const etapas = [
   },
   {
     titulo: 'Ensaio',
-    texto: 'Métodos normalizados ABNT NBR, ISO e farmacopeicos, executados sob o Sistema de Gestão da Qualidade.',
+    texto: 'Métodos normalizados ABNT NBR e ISO, executados sob o Sistema de Gestão da Qualidade ISO/IEC 17025.',
   },
   {
     titulo: 'Laudo',

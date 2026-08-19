@@ -54,10 +54,14 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.goto(URL, { waitUntil: 'networkidle' });
 
-  await page.getByRole('link', { name: /Solicitar este ensaio.*Luvas e preservativos/i }).click();
+  // Sem nome fixo: pegamos o terceiro card e conferimos que o select recebe o
+  // título dele, seja qual for o escopo cadastrado em src/lib/site.ts.
+  const card = page.locator('#escopos article').nth(2);
+  const titulo = (await card.locator('h3').textContent())?.trim();
+  await card.getByRole('link', { name: /Solicitar este ensaio/i }).click();
   await page.waitForTimeout(900);
   const valor = await page.locator('#escopo').inputValue();
-  ok(valor === 'Luvas e preservativos', `select pré-preenchido com o escopo do card (valor="${valor}")`);
+  ok(valor === titulo, `select pré-preenchido com o escopo do card (esperado "${titulo}", veio "${valor}")`);
   await page.screenshot({ path: `${OUT}/i2-escopo-preenchido.png` });
   await page.close();
 }

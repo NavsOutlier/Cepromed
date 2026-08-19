@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { Activity, ArrowRight, FileCheck, Microscope, ShieldCheck, type LucideIcon } from 'lucide-react';
-import { servicos, type Servico } from '../lib/site';
+import { escopoAcreditado, servicos, type Servico } from '../lib/site';
 import { pedirOrcamento } from '../lib/orcamento';
 
 const icones: Record<Servico['icone'], LucideIcon> = {
@@ -99,6 +99,50 @@ export function Services() {
             <Card key={servico.slug} servico={servico} indice={i} />
           ))}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7 }}
+          className="mt-20"
+        >
+          <h3 className="mb-2 text-2xl font-bold tracking-tight">Escopo acreditado, por produto</h3>
+          <p className="mb-8 max-w-2xl text-zinc-600">
+            Produtos que ensaiamos sob acreditação e as normas de referência aplicadas a cada um.
+          </p>
+
+          {/* Em telas estreitas a tabela rola sozinha, sem empurrar a página. */}
+          <div className="overflow-x-auto rounded-xl border border-zinc-200">
+            <table className="w-full min-w-2xl border-collapse text-left">
+              <caption className="sr-only">
+                Escopo acreditado do Cepromed: produto ensaiado e normas de referência.
+              </caption>
+              <thead>
+                <tr className="bg-zinc-50">
+                  <th scope="col" className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                    Produto
+                  </th>
+                  <th scope="col" className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                    Normas de referência
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {escopoAcreditado.map((linha) => (
+                  <tr key={linha.produto} className="border-t border-zinc-100 transition-colors hover:bg-brand-50/40">
+                    <th scope="row" className="px-6 py-4 align-top font-semibold text-zinc-900">
+                      {linha.produto}
+                    </th>
+                    <td className="px-6 py-4 align-top text-sm leading-relaxed text-zinc-600">
+                      {linha.normas}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

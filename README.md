@@ -81,10 +81,28 @@ Ele recebe `POST` com JSON (`nome`, `empresa`, `email`, `telefone`, `escopo`,
 `mensagem`, `consentimento`). Serve Formspree, um webhook do n8n ou uma API
 própria.
 
+## De onde vem o conteúdo
+
+Todo o texto institucional foi extraído de cepromed.com.br em agosto de 2026 e
+transcrito em [`src/lib/site.ts`](src/lib/site.ts):
+
+| Dado                                            | Página de origem                       |
+| ----------------------------------------------- | -------------------------------------- |
+| Fundação em 2011, sede própria em 2019, 4.000 m² / 950 m², cinco laboratórios | `/2809/quem-somos`   |
+| Política, missão e visão (texto literal)        | `/2810/politica-visao-e-missao-cepromed` |
+| Escopo acreditado: 14 produtos e suas normas    | `/2819/escopos`                        |
+| Endereço, CEP 37418-760, telefone, e-mail       | rodapé de todas as páginas             |
+| INMETRO CRL 0701 · ANVISA ANELI 096             | home                                   |
+
+O site publica **um único e-mail** (`contato@cepromed.com.br`); não há caixa
+separada para vagas ou ouvidoria, então esses fluxos usam o mesmo endereço com
+assunto diferente.
+
 ## Antes de publicar
 
-- [ ] Confirmar com o cliente os números em `indicadores` ([`src/lib/site.ts`](src/lib/site.ts)) — hoje são derivados do conteúdo do site atual, não de dados internos.
-- [ ] Confirmar CEP, horário de atendimento e o canal oficial da ouvidoria.
+- [ ] **Horário de atendimento** — não está publicado no site atual. O valor em `site.horario` veio do protótipo e está marcado com `TODO`; confirmar.
+- [ ] **Objetivos da qualidade** — o site lista apenas dois ("aumentar a satisfação do cliente externo/interno"). São muito internos para a home, então a seção usa política, missão e visão. Confirmar se o cliente quer os objetivos publicados também.
+- [ ] **CNPJ e razão social completa** — não publicados; se forem entrar no rodapé, pedir ao cliente.
 - [ ] Definir `VITE_FORM_ENDPOINT` para não depender do `mailto:`.
 - [ ] Conferir se o domínio final bate com as URLs absolutas em `index.html` (canonical, Open Graph e JSON-LD).
-- [ ] Verificar os direitos de uso das duas sequências de vídeo e da arte institucional.
+- [ ] Verificar os direitos de uso das duas sequências de vídeo e da arte institucional — e a inconsistência entre o logo vinho do cabeçalho e o logo verde/azul que aparece dentro dessa arte.

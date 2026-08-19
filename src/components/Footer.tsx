@@ -44,7 +44,8 @@ export function Footer() {
                   rel="noreferrer"
                   className="transition-colors hover:text-white"
                 >
-                  {site.endereco.linha}, {site.endereco.cidade}/{site.endereco.uf}
+                  {site.endereco.linha}, {site.endereco.cidade}/{site.endereco.uf} — CEP{' '}
+                  {site.endereco.cep}. {site.endereco.complemento}.
                 </a>
               </li>
               <li className="flex items-center gap-3">
@@ -85,9 +86,7 @@ export function Footer() {
           <p>
             © {ano} {site.razaoSocial}. Todos os direitos reservados.
           </p>
-          <p>
-            {site.endereco.cidade}/{site.endereco.uf} — CEP {site.endereco.cep}
-          </p>
+          <p>INMETRO CRL 0701 · ANVISA ANELI 096</p>
         </div>
       </div>
     </footer>

@@ -68,9 +68,8 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="mt-8 max-w-xl text-lg font-light leading-relaxed text-zinc-200 sm:text-xl"
           >
-            Ensaios, biocompatibilidade e liberação paramétrica para a indústria
-            médico-hospitalar — com rastreabilidade completa e reconhecimento
-            ANVISA, REBLAS e INMETRO.
+            Seringas, agulhas, equipos, luvas e preservativos ensaiados sob
+            acreditação INMETRO na ABNT NBR ISO/IEC 17025 e habilitação ANVISA.
           </motion.p>
 
           <motion.div

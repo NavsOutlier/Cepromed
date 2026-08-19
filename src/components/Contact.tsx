@@ -15,7 +15,7 @@ const canais = [
   {
     icone: MapPin,
     rotulo: 'Endereço',
-    valor: `${site.endereco.linha}, ${site.endereco.cidade}/${site.endereco.uf}`,
+    valor: `${site.endereco.linha}, ${site.endereco.cidade}/${site.endereco.uf} — CEP ${site.endereco.cep}`,
     href: site.mapsUrl,
   },
   { icone: Clock, rotulo: 'Atendimento', valor: site.horario, href: undefined },

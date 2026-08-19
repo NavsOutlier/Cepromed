@@ -11,7 +11,7 @@ const motivos = [
   {
     icone: GraduationCap,
     titulo: 'Capacitação contínua',
-    texto: 'Treinamento permanente é um objetivo declarado do nosso sistema de qualidade.',
+    texto: 'Corpo técnico e gerencial mantido sob o Sistema de Gestão da Qualidade ISO/IEC 17025.',
   },
   {
     icone: HeartPulse,
@@ -37,11 +37,11 @@ export function Careers() {
             Faça parte de uma equipe que responde pela segurança do paciente
           </h2>
           <p className="mb-10 max-w-lg text-lg font-light leading-relaxed text-zinc-400">
-            Buscamos profissionais qualificados e engajados nas áreas de biologia, farmácia,
-            química, engenharia e qualidade. Envie seu currículo com a vaga de interesse no assunto.
+            Buscamos trazer novos talentos para a companhia. Envie seu currículo indicando a área
+            de interesse no assunto da mensagem.
           </p>
           <a
-            href={`mailto:${site.emailVagas}?subject=${encodeURIComponent('Currículo - área de interesse')}`}
+            href={`mailto:${site.email}?subject=${encodeURIComponent('Trabalhe conosco - envio de currículo')}`}
             className="group inline-flex items-center gap-2 rounded-md bg-white px-8 py-4 text-sm font-semibold uppercase tracking-widest text-zinc-950 transition-colors hover:bg-zinc-200"
           >
             Enviar currículo

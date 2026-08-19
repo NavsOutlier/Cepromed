@@ -1,5 +1,5 @@
 import { useReducedMotion } from 'motion/react';
-import { acreditacoes } from '../lib/site';
+import { acreditacoes, registros } from '../lib/site';
 
 function Selo({ nome, logo, oculto }: { nome: string; logo: string; oculto?: boolean }) {
   return (
@@ -25,9 +25,23 @@ export function Accreditations() {
         <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">
           Acreditações e parcerias
         </p>
-        <h2 className="text-2xl font-bold text-zinc-900 sm:text-3xl">
+        <h2 className="mb-8 text-2xl font-bold text-zinc-900 sm:text-3xl">
           Reconhecimento por quem regula o setor
         </h2>
+
+        {/* Os números de registro são a prova concreta por trás dos selos. */}
+        <ul className="flex flex-wrap items-center justify-center gap-3">
+          {registros.map((r) => (
+            <li
+              key={r.registro}
+              className="rounded-full border border-zinc-200 bg-zinc-50 px-5 py-2 text-sm text-zinc-600"
+            >
+              <span className="font-semibold text-zinc-900">{r.orgao}</span>{' '}
+              <span className="font-mono text-brand-700">{r.registro}</span>
+              <span className="text-zinc-400"> · {r.detalhe}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {reduzirMovimento ? (

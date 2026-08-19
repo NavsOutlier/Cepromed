@@ -1,25 +1,20 @@
 import { motion } from 'motion/react';
-import { CheckCircle2, FlaskConical, Target, Users } from 'lucide-react';
-import { indicadores } from '../lib/site';
+import { FlaskConical, MapPin, Quote, Users } from 'lucide-react';
+import { indicadores, principios } from '../lib/site';
 
 const diferenciais = [
   {
     icone: FlaskConical,
-    titulo: 'Estrutura própria',
-    texto: 'Laboratórios de biocompatibilidade, microbiologia e ensaios mecânicos em instalação única.',
+    titulo: 'Cinco laboratórios',
+    texto:
+      'Ensaios físicos, mecânicos, químicos, microbiológicos e de biocompatibilidade na mesma unidade.',
   },
   {
     icone: Users,
-    titulo: 'Equipe especializada',
-    texto: 'Analistas e responsáveis técnicos qualificados para ensaios in vivo e in vitro.',
+    titulo: 'Corpo técnico próprio',
+    texto:
+      'Equipe técnica e gerencial mantida sob o Sistema de Gestão da Qualidade, conforme a ISO/IEC 17025.',
   },
-];
-
-const objetivos = [
-  'Garantir imparcialidade e confidencialidade em todos os ensaios realizados.',
-  'Assegurar a melhoria contínua dos processos e do Sistema de Gestão da Qualidade.',
-  'Atender integralmente aos requisitos de clientes e autoridades regulamentadoras.',
-  'Capacitar permanentemente os colaboradores para a excelência técnica.',
 ];
 
 const surgir = {
@@ -37,23 +32,23 @@ export function About() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
-          className="mb-20 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-zinc-200 bg-zinc-200 lg:grid-cols-4"
+          className="mb-20 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-zinc-200 bg-zinc-200 sm:grid-cols-2 lg:grid-cols-4"
         >
           {indicadores.map((item) => (
             <motion.div key={item.label} variants={surgir} className="bg-white p-6 sm:p-8">
               <dt className="sr-only">{item.label}</dt>
               <dd>
-                <span className="block font-display text-3xl font-bold tracking-tight text-brand-700 sm:text-4xl">
+                <span className="block font-display text-2xl font-bold tracking-tight text-brand-700 sm:text-3xl">
                   {item.valor}
                 </span>
                 <span className="mt-2 block text-sm font-semibold text-zinc-900">{item.label}</span>
-                <span className="mt-1 block text-sm text-zinc-500">{item.detalhe}</span>
+                <span className="mt-1 block text-sm leading-relaxed text-zinc-500">{item.detalhe}</span>
               </dd>
             </motion.div>
           ))}
         </motion.dl>
 
-        <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-16 lg:grid-cols-2">
           <motion.div
             variants={surgir}
             initial="hidden"
@@ -65,17 +60,17 @@ export function About() {
               Quem somos
             </p>
             <h2 className="mb-8 text-4xl font-bold tracking-tight sm:text-5xl">
-              Excelência em ensaios e certificações para a saúde
+              Ensaios e certificação para produtos médico-hospitalares
             </h2>
             <p className="mb-6 text-lg font-light leading-relaxed text-zinc-600">
-              O Laboratório Cepromed é referência nacional em ensaios e certificação de produtos
-              médico-hospitalares. Nosso compromisso é com a exatidão: seringas, agulhas, equipos,
-              luvas e preservativos chegam ao usuário final com segurança e conformidade
-              comprovadas.
+              O Cepromed iniciou suas atividades em 2011, em Varginha (MG). Em 2019 mudou-se para
+              sede própria às margens da Rodovia Fernão Dias, em Três Corações, no Sul de Minas
+              Gerais.
             </p>
             <p className="mb-10 text-lg font-light leading-relaxed text-zinc-600">
-              Contamos com estrutura de alta tecnologia e profissionais capacitados para atender às
-              exigências da ANVISA, do INMETRO e das demais entidades normativas.
+              São 4.000 m² de área total e 950 m² construídos, distribuídos entre os laboratórios de
+              ensaios físicos, mecânicos, químicos, microbiológicos e de biocompatibilidade, além de
+              sala de reuniões, área de carga e descarga, triagem e armazenamento de amostras.
             </p>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -91,6 +86,11 @@ export function About() {
                 </div>
               ))}
             </div>
+
+            <p className="mt-10 flex items-center gap-2 text-sm text-zinc-500">
+              <MapPin className="h-4 w-4 shrink-0 text-brand-700" aria-hidden="true" />
+              Acreditado pelo INMETRO para seringas, agulhas, equipos, luvas e preservativos.
+            </p>
           </motion.div>
 
           <motion.div
@@ -114,26 +114,29 @@ export function About() {
               />
             </picture>
 
+            {/* Política, missão e visão vêm literalmente do site institucional. */}
             <div className="rounded-2xl border border-zinc-100 bg-white p-8 shadow-xl sm:p-10">
-              <div className="mb-6 flex items-center gap-4 border-b border-zinc-100 pb-6">
-                <Target className="h-7 w-7 text-brand-700" aria-hidden="true" />
-                <h3 className="text-2xl font-bold">Objetivos da qualidade</h3>
+              <div className="mb-8 flex items-center gap-4 border-b border-zinc-100 pb-6">
+                <Quote className="h-7 w-7 shrink-0 text-brand-700" aria-hidden="true" />
+                <h3 className="text-2xl font-bold">Política, missão e visão</h3>
               </div>
-              <ul className="space-y-5">
-                {objetivos.map((item, i) => (
-                  <motion.li
-                    key={item}
+
+              <dl className="space-y-7">
+                {principios.map((item, i) => (
+                  <motion.div
+                    key={item.titulo}
                     initial={{ opacity: 0, x: 16 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.15 + i * 0.08 }}
-                    className="flex items-start gap-4"
+                    transition={{ delay: 0.15 + i * 0.1 }}
                   >
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" aria-hidden="true" />
-                    <span className="leading-relaxed text-zinc-600">{item}</span>
-                  </motion.li>
+                    <dt className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
+                      {item.titulo}
+                    </dt>
+                    <dd className="leading-relaxed text-zinc-600">{item.texto}</dd>
+                  </motion.div>
                 ))}
-              </ul>
+              </dl>
             </div>
           </motion.div>
         </div>
