@@ -39,8 +39,8 @@ src/
   components/
     ScrollSequence     uma ou mais sequências de frames em <canvas>, dirigidas pelo scroll
     Header             menu fixo, versão mobile e destaque da seção ativa
-    Hero               as duas sequências emendadas (384 frames) + chamada principal
-    Immersion          jornada da amostra em 6 etapas, sobre o último frame do hero
+    Hero               palco em duas fases: sequência (384 frames) e jornada da amostra
+    Journey            overlay da jornada — 6 etapas sobre o frame congelado do hero
     About              indicadores, texto institucional e política/missão/visão
     Services           os quatro escopos de ensaio
     Accreditations     faixa de selos (marquee pausável)
@@ -95,27 +95,29 @@ Para trocar uma sequência, substitua o vídeo em `raw-assets/videos/` e rode
 trilha (`vcientista.mp4` → `cientista`); ajuste `TRILHAS_HERO` em
 [`src/lib/sequencias.ts`](src/lib/sequencias.ts) com a nova contagem.
 
-## A jornada da amostra (seção 2)
+## A jornada da amostra (segunda fase do hero)
 
-Ela vem **imediatamente depois do hero**, e a ordem importa: o fundo é o último
-frame da sequência, então rolar do hero para ela é uma passagem contínua.
-Qualquer seção inserida entre as duas quebra esse efeito — foi o que aconteceu
-enquanto o "O Cepromed" estava no meio.
+A jornada **não é uma seção**: é a segunda fase do palco do hero
+([`Journey.tsx`](src/components/Journey.tsx), montado dentro do sticky de
+[`Hero.tsx`](src/components/Hero.tsx)). O trilho de 960vh se divide na
+fronteira `FIM_ANIMACAO` (53,5%): antes dela a sequência toca; depois, o
+canvas congela no último frame e o overlay das etapas surge por cima — uma
+máscara sobre a mesma imagem, sem troca de seção e portanto sem costura.
+Já tentamos o formato "seção seguinte com o mesmo frame de fundo": durante a
+transição as duas metades da tela mostravam a molécula em enquadramentos
+diferentes, com uma emenda visível. A fusão eliminou isso por construção.
 
 As seis etapas ficam em `etapasProcesso` ([`src/lib/site.ts`](src/lib/site.ts)).
-A partir de 1280px, cada uma é ancorada **numa esfera da própria molécula do
-fundo**: as posições em [`src/lib/ancoras.ts`](src/lib/ancoras.ts) foram medidas
-na imagem (detecção de máximos de brilho e azul no último frame), não estimadas.
+A partir de 1280px, cada uma é ancorada **numa esfera da própria molécula**:
+as posições em [`src/lib/ancoras.ts`](src/lib/ancoras.ts) foram medidas na
+imagem (detecção de máximos de brilho e azul no último frame), não estimadas, e
+são projetadas em runtime reproduzindo o `object-cover` — fixá-las em CSS
+descolaria os marcadores das esferas fora do viewport testado. Abaixo de
+1280px entra uma linha do tempo horizontal simples.
 
-Como o fundo usa `object-cover`, a esfera muda de lugar na tela conforme a
-proporção da janela — por isso as coordenadas são projetadas em runtime,
-reproduzindo o mesmo cálculo do cover. Fixar as posições em CSS descolaria os
-marcadores das esferas em qualquer janela fora do tamanho testado.
-
-Abaixo de 1280px o texto avança sobre essa área, então lá entra uma linha do
-tempo horizontal simples. `npm run check:ui` verifica, em 1280/1440/1920, que
-os seis nós são desenhados, que nenhum cai sobre o texto e que nenhum sai da
-tela.
+`npm run check:ui` verifica: as 6 etapas em ordem, a linha preenchendo, os
+nós sem colidir com o texto em 1280/1440/1920, o canvas congelado durante a
+jornada e a virada de fase sem corte visual.
 
 **Se você trocar o frame final, remeça as âncoras** — elas valem só para aquela
 imagem.

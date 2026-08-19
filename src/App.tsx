@@ -3,7 +3,6 @@ import { MotionConfig } from 'motion/react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { About } from './components/About';
-import { Immersion } from './components/Immersion';
 import { Services } from './components/Services';
 import { Accreditations } from './components/Accreditations';
 import { Careers } from './components/Careers';
@@ -19,10 +18,6 @@ export default function App() {
         <Header />
         <main id="conteudo">
           <Hero />
-          {/* Logo depois do hero: a jornada congela no frame em que a
-              sequência parou, então a passagem é contínua. Qualquer seção
-              entre as duas quebra essa emenda. */}
-          <Immersion />
           <About />
           <Services />
           <Accreditations />

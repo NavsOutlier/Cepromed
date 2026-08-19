@@ -3,14 +3,24 @@ import { motion, useScroll, useSpring, useTransform } from 'motion/react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { ScrollSequence } from './ScrollSequence';
 import { TRILHAS_HERO } from '../lib/sequencias';
+import { Journey } from './Journey';
 
 const TITULO = ['Segurança', 'em', 'produtos', 'para', 'a', 'saúde'];
+
+/**
+ * Fração do trilho dedicada à animação. Daí em diante a sequência congela no
+ * último frame e a jornada da amostra assume o mesmo palco — uma máscara por
+ * cima do canvas, não outra seção, então não existe costura entre as duas
+ * fases. O atributo data-fim-animacao expõe o valor para os testes.
+ */
+const FIM_ANIMACAO = 0.535;
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pronto, setPronto] = useState(false);
 
-  // O container tem mais que uma tela de altura: a sobra é o "tempo" da sequência.
+  // O container tem muito mais que uma tela: a sobra é o "tempo" das duas
+  // fases — primeiro a sequência, depois as etapas da jornada.
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end end'],
@@ -29,37 +39,60 @@ export function Hero() {
     restDelta: 0.0002,
   });
 
-  const conteudoOpacidade = useTransform(scrollYProgress, [0, 0.13, 1], [1, 0, 0]);
-  const conteudoY = useTransform(scrollYProgress, [0, 0.13, 1], ['0%', '-18%', '-18%']);
-  // Com o texto fora da tela o véu de contraste não é mais necessário:
-  // ele se abre e deixa a sequência aparecer no resto da rolagem.
-  const veuOpacidade = useTransform(scrollYProgress, [0, 0.2, 1], [1, 0, 0]);
+  // Fase 1: a sequência toca e congela no último frame ao chegar na fronteira.
+  const progressoSequencia = useTransform(progressoSuave, [0, FIM_ANIMACAO, 1], [0, 1, 1]);
+  // Fase 2: a jornada só começa a contar quando a animação termina.
+  const progressoJornada = useTransform(scrollYProgress, [0, FIM_ANIMACAO, 1], [0, 0, 1]);
+
+  const conteudoOpacidade = useTransform(scrollYProgress, [0, 0.06, 1], [1, 0, 0]);
+  const conteudoY = useTransform(scrollYProgress, [0, 0.06, 1], ['0%', '-18%', '-18%']);
+  // Invisível não pode ser clicável: os CTAs saem junto com o texto.
+  const conteudoCliques = useTransform(conteudoOpacidade, (v) => (v < 0.05 ? 'none' : 'auto'));
+  // Com o texto fora da tela o véu de contraste se abre e a sequência aparece.
+  const veuOpacidade = useTransform(scrollYProgress, [0, 0.09, 1], [1, 0, 0]);
+  // Na virada de fase, um véu lateral volta para dar contraste às etapas.
+  const veuJornada = useTransform(
+    scrollYProgress,
+    [FIM_ANIMACAO - 0.03, FIM_ANIMACAO + 0.02, 1],
+    [0, 1, 1],
+  );
 
   // Sem useCallback esta prop muda a cada render e remonta a sequência inteira.
   const marcarPronto = useCallback(() => setPronto(true), []);
 
   return (
-    <section ref={containerRef} id="inicio" data-tema="escuro" className="relative h-[560vh] bg-zinc-950">
+    <section
+      ref={containerRef}
+      id="inicio"
+      data-tema="escuro"
+      data-fim-animacao={FIM_ANIMACAO}
+      className="relative h-[960vh] bg-zinc-950"
+    >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <ScrollSequence
           trilhas={TRILHAS_HERO}
-          progress={progressoSuave}
-          alt="Analista do Cepromed ajustando um microscópio óptico em bancada de laboratório; em seguida, um modelo molecular tridimensional gira lentamente."
+          progress={progressoSequencia}
           ancoraY="top"
+          alt="Analista do Cepromed ajustando um microscópio óptico em bancada de laboratório; em seguida, um modelo molecular tridimensional gira lentamente e congela."
           className="absolute inset-0 h-full w-full object-cover"
           onFirstFrame={marcarPronto}
         />
 
-        {/* Base compartilhada com a seção seguinte: na emenda o tom não salta. */}
+        {/* Base de contraste presente nas duas fases. */}
         <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/70 to-brand-950/40" />
-        {/* Reforço de contraste enquanto a chamada está na tela. */}
+        {/* Reforço enquanto a chamada está na tela. */}
         <motion.div
           style={{ opacity: veuOpacidade }}
           className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-zinc-950/60"
         />
+        {/* Véu da segunda fase: escurece a faixa do texto das etapas. */}
+        <motion.div
+          style={{ opacity: veuJornada }}
+          className="absolute inset-0 bg-gradient-to-r from-zinc-950/90 via-zinc-950/55 to-transparent"
+        />
 
         <motion.div
-          style={{ opacity: conteudoOpacidade, y: conteudoY }}
+          style={{ opacity: conteudoOpacidade, y: conteudoY, pointerEvents: conteudoCliques }}
           className="container-page relative flex h-full flex-col justify-center"
         >
           <motion.p
@@ -130,6 +163,9 @@ export function Hero() {
             <ArrowDown className="h-5 w-5" />
           </motion.span>
         </motion.div>
+
+        {/* Segunda fase: a jornada assume o palco sobre o frame congelado. */}
+        <Journey progresso={progressoJornada} opacidade={veuJornada} />
       </div>
     </section>
   );

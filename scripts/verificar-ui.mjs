@@ -124,7 +124,11 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   // A sequência do hero responde ao scroll: ela não anima sozinha, e travá-la
   // deixava a página parada no primeiro frame para quem desliga animações no
   // sistema — que foi o sintoma relatado.
-  const util = await page.evaluate(() => document.querySelector('#inicio').offsetHeight - innerHeight);
+  const util = await page.evaluate(() => {
+    const h = document.querySelector('#inicio');
+    // Só a fase de animação: depois da fronteira o canvas congela de propósito.
+    return (h.offsetHeight - innerHeight) * Number(h.dataset.fimAnimacao);
+  });
   const assina = () => page.evaluate(() => {
     const c = document.querySelector('#inicio canvas');
     if (!c) return -1;
@@ -158,10 +162,9 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
 
   const g = await page.evaluate(() => {
     const hero = document.querySelector('#inicio');
-    const imersao = document.querySelectorAll('main > section')[1];
     return {
       util: hero.offsetHeight - innerHeight,
-      imersao: Math.round(imersao.getBoundingClientRect().top + scrollY),
+      fim: Number(hero.dataset.fimAnimacao),
     };
   });
 
@@ -186,30 +189,21 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
     Number(getComputedStyle(document.querySelector('#inicio .container-page')).opacity));
   ok(op === 0, `a chamada do hero continua oculta no fim da sequência (opacidade ${op})`);
 
-  // O último frame do hero e o fundo da seção 2 têm de ser a mesma imagem.
-  const igual = await page.evaluate(() => {
-    const canvas = document.querySelector('#inicio canvas');
-    const img = document.querySelectorAll('main > section')[1].querySelector('img');
-    const reduz = (fonte) => {
-      const full = document.createElement('canvas');
-      full.width = canvas.width; full.height = canvas.height;
-      const fc = full.getContext('2d');
-      if (fonte === canvas) fc.drawImage(canvas, 0, 0);
-      else {
-        const e = Math.max(full.width / img.naturalWidth, full.height / img.naturalHeight);
-        const dw = img.naturalWidth * e, dh = img.naturalHeight * e;
-        // Recorte ancorado no topo, igual ao hero (ancoraY="top" / object-top).
-        fc.drawImage(img, (full.width - dw) / 2, 0, dw, dh);
-      }
-      const t = document.createElement('canvas'); t.width = 32; t.height = 18;
-      t.getContext('2d').drawImage(full, 0, 0, 32, 18);
-      return t.getContext('2d').getImageData(0, 0, 32, 18).data;
-    };
-    const a = reduz(canvas), b = reduz(img);
-    let s = 0; for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]);
-    return s / a.length;
+  // Durante a jornada o canvas fica congelado no último frame: duas posições
+  // distintas da segunda fase têm de mostrar exatamente a mesma imagem.
+  const fotografa = () => page.evaluate(() => {
+    const c = document.querySelector('#inicio canvas');
+    const t = document.createElement('canvas'); t.width = 32; t.height = 18;
+    t.getContext('2d').drawImage(c, 0, 0, 32, 18);
+    return [...t.getContext('2d').getImageData(0, 0, 32, 18).data].join(',');
   });
-  ok(igual < 1, `seção 2 congela no último frame do hero (diferença ${igual.toFixed(2)}/255)`);
+  await page.evaluate((y) => scrollTo(0, y), Math.round(g.util * (g.fim + 0.1)));
+  await page.waitForTimeout(900);
+  const fotoA = await fotografa();
+  await page.evaluate((y) => scrollTo(0, y), Math.round(g.util * (g.fim + 0.35)));
+  await page.waitForTimeout(900);
+  const fotoB = await fotografa();
+  ok(fotoA === fotoB, 'na fase da jornada o canvas fica congelado no último frame');
   await page.close();
 }
 
@@ -229,7 +223,10 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
 
   await page.goto(URL, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1500);
-  const util = await page.evaluate(() => document.querySelector('#inicio').offsetHeight - innerHeight);
+  const util = await page.evaluate(() => {
+    const h = document.querySelector('#inicio');
+    return (h.offsetHeight - innerHeight) * Number(h.dataset.fimAnimacao);
+  });
 
   const assinatura = () => page.evaluate(() => {
     const c = document.querySelector('#inicio canvas');
@@ -263,7 +260,7 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
     [...document.querySelectorAll('[data-tema]')].map((s) => ({
       id: s.id || '(sem id)', tema: s.dataset.tema, topo: Math.round(s.offsetTop),
     })));
-  ok(secoes.length >= 7, `todas as seções declaram data-tema (${secoes.length})`);
+  ok(secoes.length === 6, `todas as seções declaram data-tema (${secoes.length})`);
 
   const erradas = [];
   for (const s of secoes) {
@@ -291,18 +288,17 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   await page.waitForTimeout(1200);
 
   const g = await page.evaluate(() => {
-    const s = document.querySelectorAll('main > section')[1];
-    return { topo: Math.round(s.offsetTop), util: s.offsetHeight - innerHeight };
+    const h = document.querySelector('#inicio');
+    return { util: h.offsetHeight - innerHeight, fim: Number(h.dataset.fimAnimacao) };
   });
 
-  const nos = await page.locator('#titulo-processo ~ ol li').count()
-    || await page.locator('ol li').first().count();
   const titulos = [];
   let preenchimentoFinal = 0;
 
   for (let i = 0; i < 6; i++) {
-    const frac = (i + 0.5) / 6;
-    await page.evaluate((y) => scrollTo(0, y), g.topo + Math.round(g.util * frac));
+    // Posição dentro da segunda fase do trilho do hero.
+    const frac = g.fim + (1 - g.fim) * ((i + 0.5) / 6);
+    await page.evaluate((y) => scrollTo(0, y), Math.round(g.util * frac));
     await page.waitForTimeout(500);
     const info = await page.evaluate(() => {
       const h3 = document.querySelector('#titulo-processo')?.parentElement?.querySelector('h3');
@@ -333,15 +329,18 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
     await page.waitForTimeout(1400);
 
     const g = await page.evaluate(() => {
-      const s = document.querySelectorAll('main > section')[1];
-      return { topo: Math.round(s.offsetTop), util: s.offsetHeight - innerHeight };
+      const h = document.querySelector('#inicio');
+      return { util: h.offsetHeight - innerHeight, fim: Number(h.dataset.fimAnimacao) };
     });
-    await page.evaluate((y) => scrollTo(0, y), g.topo + Math.round(g.util * 0.55));
+    await page.evaluate((y) => scrollTo(0, y), Math.round(g.util * (g.fim + (1 - g.fim) * 0.45)));
     await page.waitForTimeout(600);
 
     const r = await page.evaluate(() => {
-      const secao = document.querySelectorAll('main > section')[1];
-      const svg = secao.querySelector('svg');
+      const secao = document.querySelector('#inicio');
+      // Os ícones também são <svg>; a rede é o que carrega os nós numerados.
+      const svg = [...secao.querySelectorAll('svg')].find(
+        (el) => el.querySelectorAll('circle[r]').length >= 6,
+      );
       if (!svg) return { nos: 0, colisoes: 0, fora: 0 };
 
       // Caixas de texto de verdade: o título e o bloco da etapa em foco.
@@ -372,31 +371,28 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
 }
 
 
-/* ---- 11. A passagem hero -> jornada é contínua ao rolar ---- */
+/* ---- 11. A virada animação -> jornada não tem corte ---- */
 {
-  // O teste da emenda salta direto de um ponto ao outro, o que esconde
-  // qualquer seção que esteja no meio. Aqui atravessamos a fronteira em
-  // passos pequenos, como quem rola de verdade.
+  // A jornada é uma máscara sobre o mesmo canvas, não outra seção; atravessar
+  // a fronteira em passos pequenos precisa ser visualmente contínuo.
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.goto(URL, { waitUntil: 'networkidle' });
 
-  const g = await page.evaluate(() => ({
-    fimHero: document.querySelector('#inicio').offsetHeight - innerHeight,
-    inicioJornada: Math.round(document.querySelectorAll('main > section')[1].offsetTop),
-  }));
-  ok(
-    g.inicioJornada - g.fimHero === 900,
-    `a jornada vem imediatamente após o hero (${g.inicioJornada - g.fimHero}px de diferença, esperado 900)`,
-  );
+  const g = await page.evaluate(() => {
+    const h = document.querySelector('#inicio');
+    return { util: h.offsetHeight - innerHeight, fim: Number(h.dataset.fimAnimacao) };
+  });
 
   for (let i = 0; i <= 50; i++) {
-    await page.evaluate((y) => scrollTo(0, y), Math.round((g.fimHero * i) / 50));
+    await page.evaluate((y) => scrollTo(0, y), Math.round((g.util * g.fim * i) / 50));
     await page.waitForTimeout(45);
   }
   await page.waitForTimeout(3000);
 
   const quadros = [];
-  for (let y = g.fimHero - 180; y <= g.inicioJornada + 180; y += 60) {
+  const de = Math.round(g.util * (g.fim - 0.04));
+  const ate = Math.round(g.util * (g.fim + 0.06));
+  for (let y = de; y <= ate; y += 55) {
     await page.evaluate((v) => scrollTo(0, v), y);
     await page.waitForTimeout(280);
     quadros.push(await page.screenshot({ clip: { x: 0, y: 100, width: 1440, height: 700 } }));
@@ -409,7 +405,7 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
     for (let k = 0; k < a.length; k++) soma += Math.abs(a[k] - c[k]);
     maior = Math.max(maior, soma / a.length);
   }
-  ok(maior < 25, `atravessar do hero para a jornada não tem corte (maior salto ${maior.toFixed(1)}/255)`);
+  ok(maior < 20, `a virada da animação para a jornada não tem corte (maior salto ${maior.toFixed(1)}/255)`);
   await page.close();
 }
 
@@ -417,14 +413,14 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
 {
   const alvos = [
     ['desktop-hero', 1440, 900, 0],
-    ['desktop-sobre', 1440, 900, 2050],
-    ['desktop-imersao', 1440, 900, 4200],
-    ['desktop-escopos', 1440, 900, 6600],
-    ['desktop-contato', 1440, 900, 8450],
-    ['desktop-rodape', 1440, 900, 9832],
+    ['desktop-jornada', 1440, 900, 6200],
+    ['desktop-sobre', 1440, 900, 8900],
+    ['desktop-escopos', 1440, 900, 10600],
+    ['desktop-contato', 1440, 900, 13200],
+    ['desktop-rodape', 1440, 900, 15500],
     ['mobile-hero', 390, 844, 0],
-    ['mobile-escopos', 390, 844, 8200],
-    ['mobile-contato', 390, 844, 12600],
+    ['mobile-jornada', 390, 844, 5200],
+    ['mobile-contato', 390, 844, 15500],
   ];
   for (const [nome, width, height, y] of alvos) {
     const page = await browser.newPage({ viewport: { width, height } });
