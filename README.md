@@ -35,6 +35,7 @@ npm run check:ui                   # terminal 2 — capturas vão para .screensh
 src/
   lib/site.ts          conteúdo institucional (contato, escopos, selos, menu)
   lib/orcamento.ts     evento que liga os cards de escopo ao formulário
+  lib/ancoras.ts       posição das esferas da molécula e projeção do object-cover
   components/
     ScrollSequence     uma ou mais sequências de frames em <canvas>, dirigidas pelo scroll
     Header             menu fixo, versão mobile e destaque da seção ativa
@@ -93,6 +94,26 @@ Para trocar uma sequência, substitua o vídeo em `raw-assets/videos/` e rode
 `npm run gen:frames 24 && npm run gen:images`. O nome do arquivo define o nome da
 trilha (`vcientista.mp4` → `cientista`); ajuste `TRILHAS_HERO` em
 [`src/lib/sequencias.ts`](src/lib/sequencias.ts) com a nova contagem.
+
+## A jornada da amostra (seção 2)
+
+As seis etapas ficam em `etapasProcesso` ([`src/lib/site.ts`](src/lib/site.ts)).
+A partir de 1280px, cada uma é ancorada **numa esfera da própria molécula do
+fundo**: as posições em [`src/lib/ancoras.ts`](src/lib/ancoras.ts) foram medidas
+na imagem (detecção de máximos de brilho e azul no último frame), não estimadas.
+
+Como o fundo usa `object-cover`, a esfera muda de lugar na tela conforme a
+proporção da janela — por isso as coordenadas são projetadas em runtime,
+reproduzindo o mesmo cálculo do cover. Fixar as posições em CSS descolaria os
+marcadores das esferas em qualquer janela fora do tamanho testado.
+
+Abaixo de 1280px o texto avança sobre essa área, então lá entra uma linha do
+tempo horizontal simples. `npm run check:ui` verifica, em 1280/1440/1920, que
+os seis nós são desenhados, que nenhum cai sobre o texto e que nenhum sai da
+tela.
+
+**Se você trocar o frame final, remeça as âncoras** — elas valem só para aquela
+imagem.
 
 ## Formulário de orçamento
 

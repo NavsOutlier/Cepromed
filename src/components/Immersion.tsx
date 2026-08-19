@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { etapasProcesso, type Etapa } from '../lib/site';
 import { FRAME_FINAL } from '../lib/sequencias';
+import { useAncorasProjetadas } from '../lib/ancoras';
 
 const icones: Record<Etapa['icone'], LucideIcon> = {
   mail: Mail,
@@ -34,7 +35,10 @@ const TOTAL = etapasProcesso.length;
  */
 export function Immersion() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const palcoRef = useRef<HTMLDivElement>(null);
   const [ativa, setAtiva] = useState(0);
+  // Posição de cada esfera da molécula, já projetada para a tela.
+  const ancoras = useAncorasProjetadas(palcoRef);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -60,7 +64,7 @@ export function Immersion() {
       className="relative h-[500vh] bg-zinc-950"
       aria-labelledby="titulo-processo"
     >
-      <div className="sticky top-0 h-screen overflow-hidden">
+      <div ref={palcoRef} className="sticky top-0 h-screen overflow-hidden">
         <picture>
           <source media="(max-width: 900px)" srcSet={FRAME_FINAL.sm} />
           <img
@@ -75,6 +79,69 @@ export function Immersion() {
           />
         </picture>
         <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-brand-950/50" />
+
+        {/* A rede liga as próprias esferas da molécula: cada etapa fica em
+            cima de uma delas, e o traço acende conforme a jornada avança.
+            Só a partir de 1280px: abaixo disso o texto avança sobre a área das
+            esferas, e aí vale a linha do tempo simples embaixo. */}
+        {ancoras.length === etapasProcesso.length && (
+          <svg
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 hidden h-full w-full xl:block"
+          >
+            {ancoras.slice(0, -1).map((p, i) => {
+              const q = ancoras[i + 1];
+              const percorrido = i < ativa;
+              return (
+                <line
+                  key={i}
+                  x1={p.x}
+                  y1={p.y}
+                  x2={q.x}
+                  y2={q.y}
+                  strokeWidth={percorrido ? 2 : 1}
+                  strokeDasharray={percorrido ? undefined : '4 6'}
+                  className={`transition-all duration-500 ${
+                    percorrido ? 'stroke-brand-400/90' : 'stroke-white/25'
+                  }`}
+                />
+              );
+            })}
+
+            {ancoras.map((p, i) => {
+              const alcancada = i <= ativa;
+              const atual = i === ativa;
+              return (
+                <g key={i} className="transition-opacity duration-500">
+                  {atual && (
+                    <circle cx={p.x} cy={p.y} r={26} className="fill-brand-500/15 stroke-brand-400/40" />
+                  )}
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={atual ? 13 : 10}
+                    strokeWidth={2}
+                    className={`transition-all duration-500 ${
+                      alcancada
+                        ? 'fill-brand-500 stroke-brand-300'
+                        : 'fill-zinc-900/70 stroke-white/35'
+                    }`}
+                  />
+                  <text
+                    x={p.x}
+                    y={p.y + 4}
+                    textAnchor="middle"
+                    className={`font-display text-[11px] font-bold transition-colors duration-500 ${
+                      alcancada ? 'fill-white' : 'fill-white/50'
+                    }`}
+                  >
+                    {i + 1}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        )}
 
         <div className="container-page relative flex h-full flex-col justify-center py-24">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-brand-300">
@@ -128,7 +195,7 @@ export function Immersion() {
           </div>
 
           {/* Linha do tempo: os nós ligados por um traço que se preenche. */}
-          <ol className="relative mt-10 flex items-start justify-between gap-1">
+          <ol className="relative mt-10 flex items-start justify-between gap-1 xl:hidden">
             <div aria-hidden="true" className="absolute left-0 right-0 top-[11px] h-px bg-white/20" />
             <motion.div
               aria-hidden="true"

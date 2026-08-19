@@ -323,7 +323,54 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   await page.close();
 }
 
-/* ---- 10. Capturas de referência em desktop e mobile ---- */
+
+/* ---- 10. Rede sobre as esferas: nós ancorados e longe do texto ---- */
+{
+  for (const [w, h] of [[1280, 800], [1440, 900], [1920, 1000]]) {
+    const page = await browser.newPage({ viewport: { width: w, height: h } });
+    await page.goto(URL, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1400);
+
+    const g = await page.evaluate(() => {
+      const s = document.querySelectorAll('main > section')[2];
+      return { topo: Math.round(s.offsetTop), util: s.offsetHeight - innerHeight };
+    });
+    await page.evaluate((y) => scrollTo(0, y), g.topo + Math.round(g.util * 0.55));
+    await page.waitForTimeout(600);
+
+    const r = await page.evaluate(() => {
+      const secao = document.querySelectorAll('main > section')[2];
+      const svg = secao.querySelector('svg');
+      if (!svg) return { nos: 0, colisoes: 0, fora: 0 };
+
+      // Caixas de texto de verdade: o título e o bloco da etapa em foco.
+      const caixas = [
+        secao.querySelector('#titulo-processo'),
+        secao.querySelector('#titulo-processo ~ div .max-w-2xl'),
+      ]
+        .filter(Boolean)
+        .map((el) => el.getBoundingClientRect())
+        .filter((b) => b.width > 0);
+
+      const nos = [...svg.querySelectorAll('circle')]
+        .filter((c) => Number(c.getAttribute('r')) <= 14)
+        .map((c) => ({ x: Number(c.getAttribute('cx')), y: Number(c.getAttribute('cy')) }));
+
+      const colisoes = nos.filter((n) =>
+        caixas.some((b) => n.x > b.left - 16 && n.x < b.right + 16 && n.y > b.top - 16 && n.y < b.bottom + 16),
+      ).length;
+      const fora = nos.filter((n) => n.x < 8 || n.x > innerWidth - 8 || n.y < 8 || n.y > innerHeight - 8).length;
+      return { nos: nos.length, colisoes, fora };
+    });
+
+    ok(r.nos === 6, `${w}px: os 6 nós da jornada são desenhados (${r.nos})`);
+    ok(r.colisoes === 0, `${w}px: nenhum nó cai sobre o texto (${r.colisoes})`);
+    ok(r.fora === 0, `${w}px: nenhum nó sai da tela (${r.fora})`);
+    await page.close();
+  }
+}
+
+/* ---- 11. Capturas de referência em desktop e mobile ---- */
 {
   const alvos = [
     ['desktop-hero', 1440, 900, 0],
