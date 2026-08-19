@@ -35,11 +35,11 @@ src/
   lib/site.ts          conteúdo institucional (contato, escopos, selos, menu)
   lib/orcamento.ts     evento que liga os cards de escopo ao formulário
   components/
-    ScrollSequence     sequência de frames em <canvas> dirigida pelo scroll
+    ScrollSequence     uma ou mais sequências de frames em <canvas>, dirigidas pelo scroll
     Header             menu fixo, versão mobile e destaque da seção ativa
-    Hero               sequência "cientista" + chamada principal
-    About              indicadores, texto institucional e objetivos da qualidade
-    Immersion          faixa com a sequência "molecula" e as 3 etapas do ensaio
+    Hero               as duas sequências emendadas (80 frames) + chamada principal
+    About              indicadores, texto institucional e política/missão/visão
+    Immersion          congela no último frame do hero; as 3 etapas do ensaio por cima
     Services           os quatro escopos de ensaio
     Accreditations     faixa de selos (marquee pausável)
     Careers            trabalhe conosco
@@ -62,10 +62,34 @@ gera de `raw-assets/`:
 - **sequências** (`raw-assets/sequencias/<Nome>/`) → WebP numerado em duas
   larguras, `public/img/sequencias/<nome>/lg` (1600px) e `/sm` (900px).
 
-O `ScrollSequence` escolhe `sm` em telas ≤ 900px ou quando o visitante está com
-economia de dados. Para trocar uma sequência, substitua os frames em
-`raw-assets/sequencias/` e rode o script — os nomes de arquivo originais não
-importam, a ordem alfabética define a ordem dos frames.
+O `ScrollSequence` escolhe `sm` em telas ≤ 900px, em conexões 2G/3G ou quando o
+visitante está com economia de dados. Nessas condições ele também baixa só uma
+fatia dos frames (de 2 em 2, ou de 4 em 4) e desenha o vizinho mais próximo no
+lugar dos que faltam — o movimento fica mais seco, nunca parado.
+
+### Movimento reduzido
+
+Quem desliga animações no sistema (`prefers-reduced-motion`) **continua vendo a
+sequência**: ela não se move sozinha, avança na medida do scroll. O que essa
+preferência desliga é a fluidez (menos frames) e, via `<MotionConfig
+reducedMotion="user">` em [`src/App.tsx`](src/App.tsx), tudo que anima por conta
+própria — marquee dos selos, laço da seta, animações de entrada.
+
+Congelar a sequência inteira nesse caso deixava o hero parado no primeiro frame
+para esses visitantes; no Windows basta ter "Efeitos de animação" desligado em
+Acessibilidade › Efeitos visuais para cair nisso.
+
+O hero toca as duas trilhas como uma linha do tempo só — `cientista` (40) e
+depois `molecula` (40), definidas em [`src/lib/sequencias.ts`](src/lib/sequencias.ts).
+A seção seguinte usa `FRAME_FINAL`, o último frame dessa linha, como fundo
+parado: quem rola do hero para ela vê a mesma imagem, sem corte. Os dois trechos
+também compartilham o mesmo gradiente de base, para o tom não saltar na emenda.
+Se você trocar a ordem ou a quantidade de trilhas, `FRAME_FINAL` acompanha
+sozinho — e `npm run check:ui` verifica que a emenda continua exata.
+
+Para trocar uma sequência, substitua os frames em `raw-assets/sequencias/` e
+rode `npm run gen:images` — os nomes de arquivo originais não importam, a ordem
+alfabética define a ordem dos frames.
 
 ## Formulário de orçamento
 

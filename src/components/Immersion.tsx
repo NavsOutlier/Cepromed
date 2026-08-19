@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform, type MotionValue } from 'motion/react';
-import { ScrollSequence } from './ScrollSequence';
+import { FRAME_FINAL } from '../lib/sequencias';
 
 const etapas = [
   {
@@ -51,8 +51,10 @@ function Etapa({
 }
 
 /**
- * Faixa de respiro entre o institucional e os escopos: a microscopia roda ao
- * fundo enquanto as três etapas do fluxo de ensaio se revezam por cima.
+ * Faixa entre o institucional e os escopos. O fundo é exatamente o último
+ * frame do hero, parado: quem chega aqui rolando vê a imagem que a sequência
+ * acabou de deixar na tela, sem corte. Por cima passam as três etapas do
+ * fluxo de ensaio.
  */
 export function Immersion() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -64,13 +66,18 @@ export function Immersion() {
   return (
     <section ref={containerRef} className="relative h-[300vh] bg-zinc-950">
       <div className="sticky top-0 h-screen overflow-hidden">
-        <ScrollSequence
-          name="molecula"
-          frameCount={40}
-          progress={scrollYProgress}
-          alt="Animação de um modelo molecular tridimensional girando lentamente."
-          className="absolute inset-0 h-full w-full"
-        />
+        <picture>
+          <source media="(max-width: 900px)" srcSet={FRAME_FINAL.sm} />
+          <img
+            src={FRAME_FINAL.lg}
+            alt=""
+            aria-hidden="true"
+            width={1600}
+            height={900}
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </picture>
         <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/70 to-brand-950/40" />
 
         <div className="container-page relative flex h-full items-center">

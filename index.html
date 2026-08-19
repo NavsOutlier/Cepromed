@@ -39,8 +39,22 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@600;700&display=swap"
     />
 
-    <!-- O primeiro frame do hero é a maior imagem acima da dobra: buscar cedo. -->
-    <link rel="preload" as="image" href="/img/sequencias/cientista/lg/001.webp" type="image/webp" />
+    <!-- Primeiro frame do hero: buscar cedo, mas só a variante que será usada.
+         Sem o media, o celular baixaria a imagem grande à toa. -->
+    <link
+      rel="preload"
+      as="image"
+      href="/img/sequencias/cientista/lg/001.webp"
+      type="image/webp"
+      media="(min-width: 901px)"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/img/sequencias/cientista/sm/001.webp"
+      type="image/webp"
+      media="(max-width: 900px)"
+    />
 
     <script type="application/ld+json">
       {

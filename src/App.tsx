@@ -1,3 +1,5 @@
+import { MotionConfig } from 'motion/react';
+
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { About } from './components/About';
@@ -10,18 +12,22 @@ import { Footer } from './components/Footer';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-white text-zinc-900 selection:bg-brand-700 selection:text-white">
-      <Header />
-      <main id="conteudo">
-        <Hero />
-        <About />
-        <Immersion />
-        <Services />
-        <Accreditations />
-        <Careers />
-        <Contact />
-      </main>
-      <Footer />
-    </div>
+    // "user" faz o Motion seguir a preferência do sistema: o que anima sozinho
+    // (laço da seta, entradas) para; o que responde ao scroll continua.
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen bg-white text-zinc-900 selection:bg-brand-700 selection:text-white">
+        <Header />
+        <main id="conteudo">
+          <Hero />
+          <About />
+          <Immersion />
+          <Services />
+          <Accreditations />
+          <Careers />
+          <Contact />
+        </main>
+        <Footer />
+      </div>
+    </MotionConfig>
   );
 }

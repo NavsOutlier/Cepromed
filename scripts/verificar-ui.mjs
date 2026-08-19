@@ -119,10 +119,134 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   const temMarquee = await page.locator('.animate-marquee').count();
   ok(temMarquee === 0, 'com reduced-motion o marquee é substituído por lista estática');
   await page.screenshot({ path: `${OUT}/i3-reduced-motion.png` });
+
+  // A sequência do hero responde ao scroll: ela não anima sozinha, e travá-la
+  // deixava a página parada no primeiro frame para quem desliga animações no
+  // sistema — que foi o sintoma relatado.
+  const util = await page.evaluate(() => document.querySelector('#inicio').offsetHeight - innerHeight);
+  const assina = () => page.evaluate(() => {
+    const c = document.querySelector('#inicio canvas');
+    if (!c) return -1;
+    const t = document.createElement('canvas'); t.width = 16; t.height = 9;
+    t.getContext('2d').drawImage(c, 0, 0, 16, 9);
+    const d = t.getContext('2d').getImageData(0, 0, 16, 9).data;
+    let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] + d[i + 1] + d[i + 2];
+    return s;
+  });
+  const quadros = [];
+  for (let i = 0; i <= 8; i++) {
+    await page.evaluate((y) => scrollTo(0, y), Math.round((util * i) / 8));
+    await page.waitForTimeout(180);
+    quadros.push(await assina());
+  }
+  const distintos = new Set(quadros).size;
+  ok(distintos >= 5, `com reduced-motion a sequência do hero ainda acompanha o scroll (${distintos}/9)`);
   await page.close();
 }
 
-/* ---- 6. Capturas de referência em desktop e mobile ---- */
+
+/* ---- 6. Sequência do hero: 80 frames e emenda com a seção 2 ---- */
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const baixados = new Set();
+  page.on('request', (r) => {
+    const u = r.url();
+    if (u.includes('/img/sequencias/')) baixados.add(u.split('/img/sequencias/')[1]);
+  });
+  await page.goto(URL, { waitUntil: 'networkidle' });
+
+  const g = await page.evaluate(() => {
+    const hero = document.querySelector('#inicio');
+    const imersao = document.querySelectorAll('main > section')[2];
+    return {
+      util: hero.offsetHeight - innerHeight,
+      imersao: Math.round(imersao.getBoundingClientRect().top + scrollY),
+    };
+  });
+
+  for (let i = 0; i <= 100; i++) {
+    await page.evaluate((y) => scrollTo(0, y), Math.round((g.util * i) / 100));
+    await page.waitForTimeout(45);
+  }
+  await page.waitForTimeout(2000);
+
+  const cientista = [...baixados].filter((u) => u.startsWith('cientista/')).length;
+  const molecula = [...baixados].filter((u) => u.startsWith('molecula/')).length;
+  ok(cientista === 40 && molecula === 40, `as duas sequências carregam inteiras (cientista ${cientista}/40, molecula ${molecula}/40)`);
+
+  // No fim da rolagem o texto tem de estar fora, não reaparecendo.
+  await page.evaluate((y) => scrollTo(0, y), g.util);
+  await page.waitForTimeout(700);
+  const op = await page.evaluate(() =>
+    Number(getComputedStyle(document.querySelector('#inicio .container-page')).opacity));
+  ok(op === 0, `a chamada do hero continua oculta no fim da sequência (opacidade ${op})`);
+
+  // O último frame do hero e o fundo da seção 2 têm de ser a mesma imagem.
+  const igual = await page.evaluate(() => {
+    const canvas = document.querySelector('#inicio canvas');
+    const img = document.querySelectorAll('main > section')[2].querySelector('img');
+    const reduz = (fonte) => {
+      const full = document.createElement('canvas');
+      full.width = canvas.width; full.height = canvas.height;
+      const fc = full.getContext('2d');
+      if (fonte === canvas) fc.drawImage(canvas, 0, 0);
+      else {
+        const e = Math.max(full.width / img.naturalWidth, full.height / img.naturalHeight);
+        const dw = img.naturalWidth * e, dh = img.naturalHeight * e;
+        fc.drawImage(img, (full.width - dw) / 2, (full.height - dh) / 2, dw, dh);
+      }
+      const t = document.createElement('canvas'); t.width = 32; t.height = 18;
+      t.getContext('2d').drawImage(full, 0, 0, 32, 18);
+      return t.getContext('2d').getImageData(0, 0, 32, 18).data;
+    };
+    const a = reduz(canvas), b = reduz(img);
+    let s = 0; for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]);
+    return s / a.length;
+  });
+  ok(igual < 1, `seção 2 congela no último frame do hero (diferença ${igual.toFixed(2)}/255)`);
+  await page.close();
+}
+
+
+/* ---- 7. A sequência anima mesmo com a rede lenta e cache frio ---- */
+{
+  // Regressão: o download em ordem 1,2,3… deixava o hero preso no primeiro
+  // frame em 4G, porque o frame alvo do scroll ainda não tinha chegado.
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  const cdp = await ctx.newCDPSession(page);
+  await cdp.send('Network.enable');
+  await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+  await cdp.send('Network.emulateNetworkConditions', {
+    offline: false, downloadThroughput: 4e6 / 8, uploadThroughput: 4e6 / 8, latency: 60,
+  });
+
+  await page.goto(URL, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(1500);
+  const util = await page.evaluate(() => document.querySelector('#inicio').offsetHeight - innerHeight);
+
+  const assinatura = () => page.evaluate(() => {
+    const c = document.querySelector('#inicio canvas');
+    if (!c) return -1;
+    const t = document.createElement('canvas'); t.width = 16; t.height = 9;
+    t.getContext('2d').drawImage(c, 0, 0, 16, 9);
+    const d = t.getContext('2d').getImageData(0, 0, 16, 9).data;
+    let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] + d[i + 1] + d[i + 2];
+    return s;
+  });
+
+  const vistos = [];
+  for (let i = 1; i <= 8; i++) {
+    await page.evaluate((y) => scrollTo(0, y), Math.round((util * i) / 8));
+    await page.waitForTimeout(140);
+    vistos.push(await assinatura());
+  }
+  const distintas = new Set(vistos).size;
+  ok(distintas >= 6, `em 4G com cache frio a sequência responde ao scroll (${distintas}/8 imagens distintas)`);
+  await ctx.close();
+}
+
+/* ---- 8. Capturas de referência em desktop e mobile ---- */
 {
   const alvos = [
     ['desktop-hero', 1440, 900, 0],

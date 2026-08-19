@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { ScrollSequence } from './ScrollSequence';
+import { TRILHAS_HERO } from '../lib/sequencias';
 
 const TITULO = ['Segurança', 'em', 'produtos', 'para', 'a', 'saúde'];
 
@@ -15,24 +16,33 @@ export function Hero() {
     offset: ['start start', 'end end'],
   });
 
-  const conteudoOpacidade = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
-  const conteudoY = useTransform(scrollYProgress, [0, 0.4], ['0%', '-18%']);
+  const conteudoOpacidade = useTransform(scrollYProgress, [0, 0.18, 1], [1, 0, 0]);
+  const conteudoY = useTransform(scrollYProgress, [0, 0.18, 1], ['0%', '-18%', '-18%']);
+  // Com o texto fora da tela o véu de contraste não é mais necessário:
+  // ele se abre e deixa a sequência aparecer no resto da rolagem.
+  const veuOpacidade = useTransform(scrollYProgress, [0, 0.28, 1], [1, 0, 0]);
+
+  // Sem useCallback esta prop muda a cada render e remonta a sequência inteira.
+  const marcarPronto = useCallback(() => setPronto(true), []);
 
   return (
-    <section ref={containerRef} id="inicio" className="relative h-[220vh] bg-zinc-950">
+    <section ref={containerRef} id="inicio" className="relative h-[420vh] bg-zinc-950">
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <ScrollSequence
-          name="cientista"
-          frameCount={40}
+          trilhas={TRILHAS_HERO}
           progress={scrollYProgress}
-          alt="Analista do Cepromed ajustando um microscópio óptico em bancada de laboratório, com amostras e leitura de imagem na tela."
+          alt="Analista do Cepromed ajustando um microscópio óptico em bancada de laboratório; em seguida, um modelo molecular tridimensional gira lentamente."
           className="absolute inset-0 h-full w-full object-cover"
-          onFirstFrame={() => setPronto(true)}
+          onFirstFrame={marcarPronto}
         />
 
-        {/* Escurece o vídeo o suficiente para o texto passar em contraste AA. */}
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-950/85 via-zinc-950/70 to-zinc-950/85" />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-zinc-950/40" />
+        {/* Base compartilhada com a seção seguinte: na emenda o tom não salta. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/70 to-brand-950/40" />
+        {/* Reforço de contraste enquanto a chamada está na tela. */}
+        <motion.div
+          style={{ opacity: veuOpacidade }}
+          className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-zinc-950/60"
+        />
 
         <motion.div
           style={{ opacity: conteudoOpacidade, y: conteudoY }}
