@@ -24,7 +24,7 @@ const surgir = {
 
 export function About() {
   return (
-    <section id="o-cepromed" className="scroll-mt-24 bg-zinc-50 py-24 sm:py-32">
+    <section id="o-cepromed" data-tema="claro" className="scroll-mt-24 bg-zinc-50 py-24 sm:py-32">
       <div className="container-page">
         {/* Faixa de credibilidade: números antes do texto longo. */}
         <motion.dl

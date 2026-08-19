@@ -64,7 +64,7 @@ export function Immersion() {
   });
 
   return (
-    <section ref={containerRef} className="relative h-[300vh] bg-zinc-950">
+    <section ref={containerRef} data-tema="escuro" className="relative h-[300vh] bg-zinc-950">
       <div className="sticky top-0 h-screen overflow-hidden">
         <picture>
           <source media="(max-width: 900px)" srcSet={FRAME_FINAL.sm} />

@@ -22,7 +22,7 @@ const motivos = [
 
 export function Careers() {
   return (
-    <section id="trabalhe-conosco" className="scroll-mt-24 bg-zinc-950 py-24 text-white sm:py-32">
+    <section id="trabalhe-conosco" data-tema="escuro" className="scroll-mt-24 bg-zinc-950 py-24 text-white sm:py-32">
       <div className="container-page grid grid-cols-1 gap-16 lg:grid-cols-[1fr_1.1fr] lg:items-center">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

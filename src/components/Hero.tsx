@@ -26,7 +26,7 @@ export function Hero() {
   const marcarPronto = useCallback(() => setPronto(true), []);
 
   return (
-    <section ref={containerRef} id="inicio" className="relative h-[420vh] bg-zinc-950">
+    <section ref={containerRef} id="inicio" data-tema="escuro" className="relative h-[420vh] bg-zinc-950">
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <ScrollSequence
           trilhas={TRILHAS_HERO}

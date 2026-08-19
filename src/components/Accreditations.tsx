@@ -20,7 +20,7 @@ export function Accreditations() {
   const reduzirMovimento = useReducedMotion();
 
   return (
-    <section id="acreditacoes" className="scroll-mt-24 border-t border-zinc-100 bg-white py-20">
+    <section id="acreditacoes" data-tema="claro" className="scroll-mt-24 border-t border-zinc-100 bg-white py-20">
       <div className="container-page mb-12 text-center">
         <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">
           Acreditações e parcerias

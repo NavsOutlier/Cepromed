@@ -31,17 +31,48 @@ function useSecaoAtiva() {
   return ativa;
 }
 
-export function Header() {
-  const [rolou, setRolou] = useState(false);
-  const [menuAberto, setMenuAberto] = useState(false);
-  const ativa = useSecaoAtiva();
+/**
+ * Tema da seção que está passando por baixo da barra.
+ *
+ * A barra branca por cima do hero cortava a cena no meio; sobre as faixas
+ * escuras ela some e o conteúdo respira. Amarrar isso a um número fixo de
+ * seções quebraria assim que a ordem mudasse — e deixaria a barra
+ * transparente sobre um fundo claro, com o texto branco sumindo. Então cada
+ * seção declara `data-tema` e a barra segue o que estiver embaixo dela.
+ */
+function useTemaDoFundo() {
+  const [tema, setTema] = useState<'claro' | 'escuro'>('escuro');
 
   useEffect(() => {
-    const onScroll = () => setRolou(window.scrollY > 80);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const secoes = [...document.querySelectorAll<HTMLElement>('[data-tema]')];
+    if (!secoes.length) return;
+
+    const medir = () => {
+      // Uma sonda logo abaixo da barra: a seção que a contém manda no tema.
+      const linha = window.scrollY + 72;
+      let atual = secoes[0];
+      for (const s of secoes) {
+        if (s.offsetTop <= linha) atual = s;
+      }
+      setTema(atual.dataset.tema === 'claro' ? 'claro' : 'escuro');
+    };
+
+    medir();
+    window.addEventListener('scroll', medir, { passive: true });
+    window.addEventListener('resize', medir);
+    return () => {
+      window.removeEventListener('scroll', medir);
+      window.removeEventListener('resize', medir);
+    };
   }, []);
+
+  return tema;
+}
+
+export function Header() {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const ativa = useSecaoAtiva();
+  const tema = useTemaDoFundo();
 
   // Menu aberto trava o scroll do fundo e fecha no Esc.
   useEffect(() => {
@@ -55,7 +86,7 @@ export function Header() {
     };
   }, [menuAberto]);
 
-  const solido = rolou || menuAberto;
+  const solido = tema === 'claro' || menuAberto;
 
   return (
     <>

@@ -84,7 +84,7 @@ export function Contact() {
   const rotulo = 'mb-2 block text-sm font-medium text-zinc-700';
 
   return (
-    <section id="contato" className="scroll-mt-24 bg-zinc-50 py-24 sm:py-32">
+    <section id="contato" data-tema="claro" className="scroll-mt-24 bg-zinc-50 py-24 sm:py-32">
       <div className="container-page grid grid-cols-1 gap-16 lg:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

@@ -73,7 +73,7 @@ function Card({ servico, indice }: { servico: Servico; indice: number }) {
 
 export function Services() {
   return (
-    <section id="escopos" className="scroll-mt-24 bg-white py-24 sm:py-32">
+    <section id="escopos" data-tema="claro" className="scroll-mt-24 bg-white py-24 sm:py-32">
       <div className="container-page">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

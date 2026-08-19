@@ -247,7 +247,38 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   await ctx.close();
 }
 
-/* ---- 8. Capturas de referência em desktop e mobile ---- */
+
+/* ---- 8. A barra do topo acompanha o fundo da seção ---- */
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await page.goto(URL, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1000);
+
+  const secoes = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-tema]')].map((s) => ({
+      id: s.id || '(sem id)', tema: s.dataset.tema, topo: Math.round(s.offsetTop),
+    })));
+  ok(secoes.length >= 7, `todas as seções declaram data-tema (${secoes.length})`);
+
+  const erradas = [];
+  for (const s of secoes) {
+    await page.evaluate((y) => scrollTo(0, y + 120), s.topo);
+    await page.waitForTimeout(350);
+    const solida = await page.evaluate(() => {
+      // "rgba(0, 0, 0, 0)" quando transparente, "rgba(255, 255, 255, 0.9)" quando branca.
+      const bg = getComputedStyle(document.querySelector('header')).backgroundColor;
+      const canais = bg.slice(bg.indexOf('(') + 1, bg.lastIndexOf(')')).split(',').map(Number);
+      const alfa = canais.length === 4 ? canais[3] : 1;
+      return alfa > 0.1;
+    });
+    // Fundo claro pede barra branca; fundo escuro pede barra transparente.
+    if (solida !== (s.tema === 'claro')) erradas.push(`${s.id}:${s.tema}`);
+  }
+  ok(erradas.length === 0, `a barra combina com o fundo em todas as seções${erradas.length ? ' — falhou em ' + erradas.join(', ') : ''}`);
+  await page.close();
+}
+
+/* ---- 9. Capturas de referência em desktop e mobile ---- */
 {
   const alvos = [
     ['desktop-hero', 1440, 900, 0],
