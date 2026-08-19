@@ -1,0 +1,6 @@
+{
+  "name": "Cepromed Tech Redesign",
+  "description": "Uma recriação tecnológica e imersiva do site Laboratório Cepromed, focada em animações avançadas e modernidade.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
