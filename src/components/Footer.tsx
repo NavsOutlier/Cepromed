@@ -86,7 +86,11 @@ export function Footer() {
           <p>
             © {ano} {site.razaoSocial}. Todos os direitos reservados.
           </p>
-          <p>INMETRO CRL 0701 · ANVISA ANELI 096</p>
+          <p>
+            {site.razaoSocialCompleta} · CNPJ {site.cnpj}
+            <span className="mx-2">·</span>
+            INMETRO CRL 0701 · ANVISA ANELI 096
+          </p>
         </div>
       </div>
     </footer>

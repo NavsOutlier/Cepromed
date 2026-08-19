@@ -282,7 +282,48 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   await page.close();
 }
 
-/* ---- 9. Capturas de referência em desktop e mobile ---- */
+
+/* ---- 9. Jornada da amostra: etapas trocam e a linha se preenche ---- */
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await page.goto(URL, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1200);
+
+  const g = await page.evaluate(() => {
+    const s = document.querySelectorAll('main > section')[2];
+    return { topo: Math.round(s.offsetTop), util: s.offsetHeight - innerHeight };
+  });
+
+  const nos = await page.locator('#titulo-processo ~ ol li').count()
+    || await page.locator('ol li').first().count();
+  const titulos = [];
+  let preenchimentoFinal = 0;
+
+  for (let i = 0; i < 6; i++) {
+    const frac = (i + 0.5) / 6;
+    await page.evaluate((y) => scrollTo(0, y), g.topo + Math.round(g.util * frac));
+    await page.waitForTimeout(500);
+    const info = await page.evaluate(() => {
+      const h3 = document.querySelector('#titulo-processo')?.parentElement?.querySelector('h3');
+      const barra = document.querySelector('#titulo-processo')?.parentElement?.querySelector('ol .origin-left');
+      const t = barra ? new DOMMatrixReadOnly(getComputedStyle(barra).transform).a : 0;
+      const acesos = [...document.querySelectorAll('#titulo-processo ~ ol li span:first-child')]
+        .filter((n) => n.className.includes('bg-brand-500')).length;
+      return { titulo: h3?.textContent?.trim(), preenchimento: t, acesos };
+    });
+    titulos.push(info.titulo);
+    preenchimentoFinal = info.preenchimento;
+    // O número de nós acesos tem de acompanhar a etapa atual.
+    if (info.acesos !== i + 1) titulos.push(`!acesos=${info.acesos} na etapa ${i + 1}`);
+  }
+
+  const unicos = new Set(titulos.filter(Boolean)).size;
+  ok(unicos === 6, `as 6 etapas da jornada aparecem em ordem (${unicos} distintas: ${titulos.join(' > ')})`);
+  ok(preenchimentoFinal > 0.9, `a linha se preenche até o fim (${preenchimentoFinal.toFixed(2)})`);
+  await page.close();
+}
+
+/* ---- 10. Capturas de referência em desktop e mobile ---- */
 {
   const alvos = [
     ['desktop-hero', 1440, 900, 0],

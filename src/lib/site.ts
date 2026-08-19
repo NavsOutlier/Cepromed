@@ -10,6 +10,9 @@
 export const site = {
   nome: 'Cepromed',
   razaoSocial: 'Cepromed Laboratório',
+  // Registro público na Receita Federal (consultado em agosto de 2026).
+  razaoSocialCompleta: 'Cepromed Laboratório e Certificadora de Produtos Ltda.',
+  cnpj: '14.769.193/0001-54',
   descricao:
     'Laboratório de ensaios e certificação de produtos médico-hospitalares, acreditado pelo INMETRO na ABNT NBR ISO/IEC 17025 e habilitado pela ANVISA.',
   url: 'https://cepromed.com.br',
@@ -152,4 +155,77 @@ export const acreditacoes = [
 export const registros = [
   { orgao: 'INMETRO', registro: 'CRL 0701', detalhe: 'Ensaios ABNT NBR ISO/IEC 17025' },
   { orgao: 'ANVISA', registro: 'ANELI 096', detalhe: 'Laboratório habilitado' },
+] as const;
+
+/**
+ * A jornada da amostra, do pedido ao laudo de volta.
+ *
+ * O que está escrito aqui é o que o Cepromed publica: a estrutura física
+ * declara "área de carga e descarga, triagem e armazenamento", os ensaios
+ * correm sob a ABNT NBR ISO/IEC 17025 e o escopo acreditado é o de
+ * `escopoAcreditado`.
+ *
+ * ATENÇÃO: os prazos abaixo são PROVISÓRIOS, inventados só para ver o layout
+ * de pé. NÃO PUBLIQUE sem substituir pelos números reais do Cepromed —
+ * prazo anunciado em site vira expectativa contratual.
+ * Um prazo vazio simplesmente não é exibido.
+ */
+export type Etapa = {
+  titulo: string;
+  resumo: string;
+  detalhe: string;
+  /** Ex.: "até 2 dias úteis". Vazio = não exibido. */
+  prazo?: string;
+  icone: 'mail' | 'truck' | 'clipboard' | 'flask' | 'file' | 'send';
+};
+
+export const etapasProcesso: readonly Etapa[] = [
+  {
+    titulo: 'Solicitação',
+    resumo: 'Você descreve o produto e a norma pretendida.',
+    detalhe:
+      'Pelo formulário ou por telefone. Retornamos com o escopo aplicável, as condições e o que precisa ser enviado.',
+    prazo: 'resposta em até 2 dias úteis', // PROVISÓRIO
+    icone: 'mail',
+  },
+  {
+    titulo: 'Envio da amostra',
+    resumo: 'O lote segue para a unidade em Três Corações.',
+    detalhe:
+      'Rod. Fernão Dias, BR-381, KM 759, com caixa postal própria. A unidade fica na pista sul, no Distrito Industrial, com acesso direto pela rodovia.',
+    prazo: 'frete e transportadora a combinar', // PROVISÓRIO
+    icone: 'truck',
+  },
+  {
+    titulo: 'Recepção e triagem',
+    resumo: 'Área própria de carga, descarga e armazenamento.',
+    detalhe:
+      'Cada lote entra identificado e registrado. A cadeia de custódia fica documentada da recepção ao descarte.',
+    prazo: 'no mesmo dia útil do recebimento', // PROVISÓRIO
+    icone: 'clipboard',
+  },
+  {
+    titulo: 'Ensaio',
+    resumo: 'Executado nos cinco laboratórios da unidade.',
+    detalhe:
+      'Ensaios físicos, mecânicos, químicos, microbiológicos e de biocompatibilidade, por métodos ABNT NBR e ISO, sob o Sistema de Gestão da Qualidade.',
+    prazo: '5 a 15 dias úteis, conforme o escopo', // PROVISÓRIO
+    icone: 'flask',
+  },
+  {
+    titulo: 'Laudo',
+    resumo: 'Resultado assinado por responsável técnico.',
+    detalhe:
+      'Emitido sob a acreditação INMETRO CRL 0701 e a habilitação ANVISA ANELI 096, com os resultados de cada ensaio do escopo contratado.',
+    prazo: 'até 3 dias úteis após o ensaio', // PROVISÓRIO
+    icone: 'file',
+  },
+  {
+    titulo: 'Retorno',
+    resumo: 'O laudo chega a você e a amostra tem destino definido.',
+    detalhe:
+      'Você recebe o documento e é informado sobre a destinação do material ensaiado, conforme combinado na contratação.',
+    prazo: 'envio digital assim que emitido', // PROVISÓRIO
+    icone: 'send',
+  },
 ] as const;

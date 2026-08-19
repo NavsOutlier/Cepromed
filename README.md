@@ -40,7 +40,7 @@ src/
     Header             menu fixo, versão mobile e destaque da seção ativa
     Hero               as duas sequências emendadas (80 frames) + chamada principal
     About              indicadores, texto institucional e política/missão/visão
-    Immersion          congela no último frame do hero; as 3 etapas do ensaio por cima
+    Immersion          jornada da amostra em 6 etapas, sobre o último frame do hero
     Services           os quatro escopos de ensaio
     Accreditations     faixa de selos (marquee pausável)
     Careers            trabalhe conosco
@@ -127,9 +127,10 @@ assunto diferente.
 
 ## Antes de publicar
 
+- [ ] **PRAZOS DA JORNADA — bloqueante.** Os prazos em `etapasProcesso` ([`src/lib/site.ts`](src/lib/site.ts)) são **inventados**, só para ver o layout de pé. Prazo anunciado em site vira expectativa contratual: troque pelos números reais antes de qualquer publicação. Cada um está marcado com `// PROVISÓRIO`; um prazo vazio simplesmente não aparece na tela.
+
 - [ ] **Horário de atendimento** — não está publicado no site atual. O valor em `site.horario` veio do protótipo e está marcado com `TODO`; confirmar.
 - [ ] **Objetivos da qualidade** — o site lista apenas dois ("aumentar a satisfação do cliente externo/interno"). São muito internos para a home, então a seção usa política, missão e visão. Confirmar se o cliente quer os objetivos publicados também.
-- [ ] **CNPJ e razão social completa** — não publicados; se forem entrar no rodapé, pedir ao cliente.
 - [ ] Definir `VITE_FORM_ENDPOINT` para não depender do `mailto:`.
 - [ ] Conferir se o domínio final bate com as URLs absolutas em `index.html` (canonical, Open Graph e JSON-LD).
 - [ ] Verificar os direitos de uso das duas sequências de vídeo e da arte institucional — e a inconsistência entre o logo vinho do cabeçalho e o logo verde/azul que aparece dentro dessa arte.
