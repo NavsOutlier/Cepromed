@@ -8,6 +8,7 @@
  * As capturas vão para .screenshots/ (fora do controle de versão).
  */
 import { chromium } from 'playwright';
+import sharp from 'sharp';
 
 import { mkdirSync } from 'node:fs';
 
@@ -157,7 +158,7 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
 
   const g = await page.evaluate(() => {
     const hero = document.querySelector('#inicio');
-    const imersao = document.querySelectorAll('main > section')[2];
+    const imersao = document.querySelectorAll('main > section')[1];
     return {
       util: hero.offsetHeight - innerHeight,
       imersao: Math.round(imersao.getBoundingClientRect().top + scrollY),
@@ -188,7 +189,7 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   // O último frame do hero e o fundo da seção 2 têm de ser a mesma imagem.
   const igual = await page.evaluate(() => {
     const canvas = document.querySelector('#inicio canvas');
-    const img = document.querySelectorAll('main > section')[2].querySelector('img');
+    const img = document.querySelectorAll('main > section')[1].querySelector('img');
     const reduz = (fonte) => {
       const full = document.createElement('canvas');
       full.width = canvas.width; full.height = canvas.height;
@@ -290,7 +291,7 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   await page.waitForTimeout(1200);
 
   const g = await page.evaluate(() => {
-    const s = document.querySelectorAll('main > section')[2];
+    const s = document.querySelectorAll('main > section')[1];
     return { topo: Math.round(s.offsetTop), util: s.offsetHeight - innerHeight };
   });
 
@@ -332,14 +333,14 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
     await page.waitForTimeout(1400);
 
     const g = await page.evaluate(() => {
-      const s = document.querySelectorAll('main > section')[2];
+      const s = document.querySelectorAll('main > section')[1];
       return { topo: Math.round(s.offsetTop), util: s.offsetHeight - innerHeight };
     });
     await page.evaluate((y) => scrollTo(0, y), g.topo + Math.round(g.util * 0.55));
     await page.waitForTimeout(600);
 
     const r = await page.evaluate(() => {
-      const secao = document.querySelectorAll('main > section')[2];
+      const secao = document.querySelectorAll('main > section')[1];
       const svg = secao.querySelector('svg');
       if (!svg) return { nos: 0, colisoes: 0, fora: 0 };
 
@@ -370,7 +371,49 @@ const ok = (cond, msg) => (cond ? console.log('  PASS ' + msg) : falhas.push(msg
   }
 }
 
-/* ---- 11. Capturas de referência em desktop e mobile ---- */
+
+/* ---- 11. A passagem hero -> jornada é contínua ao rolar ---- */
+{
+  // O teste da emenda salta direto de um ponto ao outro, o que esconde
+  // qualquer seção que esteja no meio. Aqui atravessamos a fronteira em
+  // passos pequenos, como quem rola de verdade.
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await page.goto(URL, { waitUntil: 'networkidle' });
+
+  const g = await page.evaluate(() => ({
+    fimHero: document.querySelector('#inicio').offsetHeight - innerHeight,
+    inicioJornada: Math.round(document.querySelectorAll('main > section')[1].offsetTop),
+  }));
+  ok(
+    g.inicioJornada - g.fimHero === 900,
+    `a jornada vem imediatamente após o hero (${g.inicioJornada - g.fimHero}px de diferença, esperado 900)`,
+  );
+
+  for (let i = 0; i <= 50; i++) {
+    await page.evaluate((y) => scrollTo(0, y), Math.round((g.fimHero * i) / 50));
+    await page.waitForTimeout(45);
+  }
+  await page.waitForTimeout(3000);
+
+  const quadros = [];
+  for (let y = g.fimHero - 180; y <= g.inicioJornada + 180; y += 60) {
+    await page.evaluate((v) => scrollTo(0, v), y);
+    await page.waitForTimeout(280);
+    quadros.push(await page.screenshot({ clip: { x: 0, y: 100, width: 1440, height: 700 } }));
+  }
+  const reduz = (buf) => sharp(buf).greyscale().resize(120, 60, { fit: 'fill' }).raw().toBuffer();
+  let maior = 0;
+  for (let i = 1; i < quadros.length; i++) {
+    const [a, c] = await Promise.all([reduz(quadros[i - 1]), reduz(quadros[i])]);
+    let soma = 0;
+    for (let k = 0; k < a.length; k++) soma += Math.abs(a[k] - c[k]);
+    maior = Math.max(maior, soma / a.length);
+  }
+  ok(maior < 25, `atravessar do hero para a jornada não tem corte (maior salto ${maior.toFixed(1)}/255)`);
+  await page.close();
+}
+
+/* ---- 12. Capturas de referência em desktop e mobile ---- */
 {
   const alvos = [
     ['desktop-hero', 1440, 900, 0],

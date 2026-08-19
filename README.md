@@ -39,9 +39,9 @@ src/
   components/
     ScrollSequence     uma ou mais sequências de frames em <canvas>, dirigidas pelo scroll
     Header             menu fixo, versão mobile e destaque da seção ativa
-    Hero               as duas sequências emendadas (80 frames) + chamada principal
-    About              indicadores, texto institucional e política/missão/visão
+    Hero               as duas sequências emendadas (384 frames) + chamada principal
     Immersion          jornada da amostra em 6 etapas, sobre o último frame do hero
+    About              indicadores, texto institucional e política/missão/visão
     Services           os quatro escopos de ensaio
     Accreditations     faixa de selos (marquee pausável)
     Careers            trabalhe conosco
@@ -96,6 +96,11 @@ trilha (`vcientista.mp4` → `cientista`); ajuste `TRILHAS_HERO` em
 [`src/lib/sequencias.ts`](src/lib/sequencias.ts) com a nova contagem.
 
 ## A jornada da amostra (seção 2)
+
+Ela vem **imediatamente depois do hero**, e a ordem importa: o fundo é o último
+frame da sequência, então rolar do hero para ela é uma passagem contínua.
+Qualquer seção inserida entre as duas quebra esse efeito — foi o que aconteceu
+enquanto o "O Cepromed" estava no meio.
 
 As seis etapas ficam em `etapasProcesso` ([`src/lib/site.ts`](src/lib/site.ts)).
 A partir de 1280px, cada uma é ancorada **numa esfera da própria molécula do

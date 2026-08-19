@@ -19,8 +19,11 @@ export default function App() {
         <Header />
         <main id="conteudo">
           <Hero />
-          <About />
+          {/* Logo depois do hero: a jornada congela no frame em que a
+              sequência parou, então a passagem é contínua. Qualquer seção
+              entre as duas quebra essa emenda. */}
           <Immersion />
+          <About />
           <Services />
           <Accreditations />
           <Careers />
