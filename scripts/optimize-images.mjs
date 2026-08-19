@@ -4,7 +4,7 @@
  *   node scripts/optimize-images.mjs
  *
  * - Fotos de serviço / institucionais -> WebP 1600px + fallback JPEG.
- * - Sequência de frames do hero -> WebP em duas larguras (1200 desktop / 700 mobile),
+ * - Sequência de frames do hero -> WebP em duas larguras (1000 desktop / 600 mobile),
  *   renomeados para o padrão numérico que <ScrollSequence> espera.
  *
  * As fontes ficam em raw-assets/ (fora do build) e o resultado em public/img/.
@@ -42,7 +42,7 @@ async function sequence(srcDir, outDir) {
   // Com as sequências adensadas há quase o dobro de frames; cada um pode ser
   // um pouco menor e mais comprimido sem perda visível, porque nenhum fica
   // muito tempo na tela.
-  for (const [w, suffix] of [[1200, 'lg'], [700, 'sm']]) {
+  for (const [w, suffix] of [[1000, 'lg'], [600, 'sm']]) {
     const dir = path.join(outDir, suffix);
     await mkdir(dir, { recursive: true });
     let bytes = 0;
@@ -50,7 +50,7 @@ async function sequence(srcDir, outDir) {
       const out = path.join(dir, `${String(i + 1).padStart(3, '0')}.webp`);
       await sharp(path.join(srcDir, file))
         .resize({ width: w, withoutEnlargement: true })
-        .webp({ quality: suffix === 'lg' ? 62 : 55, effort: 5 })
+        .webp({ quality: suffix === 'lg' ? 55 : 50, effort: 5 })
         .toFile(out);
       bytes += (await stat(out)).size;
     }

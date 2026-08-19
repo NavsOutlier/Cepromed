@@ -66,19 +66,31 @@ gera de `raw-assets/`:
 ### De onde vêm os frames
 
 Os vídeos originais ficam em `raw-assets/videos/` (`v<nome>.mp4`) e nunca são
-servidos. `npm run gen:frames` amostra cada um a 12 fps com ffmpeg e grava em
+servidos. `npm run gen:frames` amostra cada um com ffmpeg e grava em
 `raw-assets/sequencias-densas/<Nome>/`; o `gen:images` prefere essa pasta.
 
-Os clipes têm 8 s a 24 fps, então a 12 fps saem **96 frames reais por
-sequência** — contra os 40 que vieram do ezgif e estão em
-`raw-assets/sequencias/` (mantidos só por histórico). Para mais suavidade,
-`npm run gen:frames 16` ou `24`; o custo é o peso da página.
+Os clipes têm **8 s a 24 fps**, então `gen:frames 24` extrai os 192 quadros de
+cada um — 384 no hero, tudo que o material tem. Pedir mais que 24 não adianta:
+a 30 fps o ffmpeg repete quadros (medido: 56 duplicatas em 239, 23% de peso
+sem nenhuma suavidade). Para ir além, só refilmando em taxa maior.
 
 > Os vídeos estavam em `public/`, o que os colocava no build sem serem usados —
 > 14,7 MB servidos à toa. Mantenha-os em `raw-assets/`.
 
+### O custo da suavidade
+
+Com 384 frames o hero pesa **9,8 MB no desktop** e 5,4 MB no celular. É muito
+para uma landing page, e é uma escolha consciente: o carregamento é progressivo
+(a página fica utilizável com ~12 arquivos) mas o tráfego total é esse.
+
+Para aliviar, `npm run gen:frames 12` volta a 192 frames e ~6 MB — a diferença
+é perceptível lado a lado, quase não isolada. As variantes são geradas a
+1000 px (desktop) e 600 px (celular); medindo a perda contra o original em tela
+de 1440 px, ir de 1100 px para 1000 px custou 0,07/255 de nitidez e economizou
+1 MB.
+
 Para trocar uma sequência, substitua o vídeo em `raw-assets/videos/` e rode
-`npm run gen:frames && npm run gen:images`. O nome do arquivo define o nome da
+`npm run gen:frames 24 && npm run gen:images`. O nome do arquivo define o nome da
 trilha (`vcientista.mp4` → `cientista`); ajuste `TRILHAS_HERO` em
 [`src/lib/sequencias.ts`](src/lib/sequencias.ts) com a nova contagem.
 

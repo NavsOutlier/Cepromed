@@ -23,23 +23,23 @@ export function Hero() {
    * que o scroll para.
    */
   const progressoSuave = useSpring(scrollYProgress, {
-    stiffness: 140,
-    damping: 32,
-    mass: 0.35,
-    restDelta: 0.0005,
+    stiffness: 90,
+    damping: 26,
+    mass: 0.5,
+    restDelta: 0.0002,
   });
 
-  const conteudoOpacidade = useTransform(scrollYProgress, [0, 0.18, 1], [1, 0, 0]);
-  const conteudoY = useTransform(scrollYProgress, [0, 0.18, 1], ['0%', '-18%', '-18%']);
+  const conteudoOpacidade = useTransform(scrollYProgress, [0, 0.13, 1], [1, 0, 0]);
+  const conteudoY = useTransform(scrollYProgress, [0, 0.13, 1], ['0%', '-18%', '-18%']);
   // Com o texto fora da tela o véu de contraste não é mais necessário:
   // ele se abre e deixa a sequência aparecer no resto da rolagem.
-  const veuOpacidade = useTransform(scrollYProgress, [0, 0.28, 1], [1, 0, 0]);
+  const veuOpacidade = useTransform(scrollYProgress, [0, 0.2, 1], [1, 0, 0]);
 
   // Sem useCallback esta prop muda a cada render e remonta a sequência inteira.
   const marcarPronto = useCallback(() => setPronto(true), []);
 
   return (
-    <section ref={containerRef} id="inicio" data-tema="escuro" className="relative h-[420vh] bg-zinc-950">
+    <section ref={containerRef} id="inicio" data-tema="escuro" className="relative h-[560vh] bg-zinc-950">
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <ScrollSequence
           trilhas={TRILHAS_HERO}
